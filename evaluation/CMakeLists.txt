@@ -154,6 +154,6 @@ set(IDE_FOLDER "Library")
 add_subdirectory(measurements)
 
 set(IDE_FOLDER "Tools")
-# add_subdirectory(cli-cpp)
+add_subdirectory(cli-cpp)
 # add_subdirectory(cli-py)
 # add_subdirectory(cli-ts)

@@ -1,5 +1,5 @@
 
-#include <treemap-measurements/metrics/AspectRatio.h>
+#include <measurements/metrics/AspectRatio.h>
 
 
 #include <limits>
@@ -8,7 +8,7 @@
 #include <glm/common.hpp>
 #include <glm/gtc/constants.hpp>
 
-#include <treemap-layouting/layout/Rect.h>
+#include <treemap/layout/Rect.h>
 
 
 AspectRatio::AspectRatio()

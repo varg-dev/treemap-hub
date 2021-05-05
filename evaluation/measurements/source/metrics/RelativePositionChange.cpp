@@ -1,10 +1,10 @@
 
-#include <treemap-measurements/metrics/RelativePositionChange.h>
+#include <measurements/metrics/RelativePositionChange.h>
 
 
 #include <glm/gtc/constants.hpp>
 
-#include <treemap-layouting/layout/Rect.h>
+#include <treemap/layout/Rect.h>
 
 
 namespace

@@ -1,10 +1,10 @@
 
-#include <treemap-measurements/metrics/VisualChange.h>
+#include <measurements/metrics/VisualChange.h>
 
 
 #include <glm/gtc/constants.hpp>
 
-#include <treemap-layouting/layout/Rect.h>
+#include <treemap/layout/Rect.h>
 
 
 VisualChange::VisualChange()

@@ -1,11 +1,11 @@
 
-#include <treemap-measurements/metrics/DistanceChange.h>
+#include <measurements/metrics/DistanceChange.h>
 
 
 #include <glm/geometric.hpp>
 #include <glm/gtc/constants.hpp>
 
-#include <treemap-layouting/layout/Rect.h>
+#include <treemap/layout/Rect.h>
 
 
 DistanceChange::DistanceChange()

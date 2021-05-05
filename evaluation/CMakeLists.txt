@@ -38,9 +38,9 @@ get_git_head_revision(GIT_REFSPEC GIT_SHA1)
 string(SUBSTRING "${GIT_SHA1}" 0 12 GIT_REV)
 
 # Meta information about the project
-set(META_PROJECT_NAME        "treemap-hub-evaluation")
+set(META_PROJECT_NAME        "treemaphub-evaluation")
 set(META_PROJECT_DESCRIPTION "TreemapHub Evaluation")
-set(META_AUTHOR_ORGANIZATION "HPI Computer Graphics Systems Group")
+set(META_AUTHOR_ORGANIZATION "HPI Computer Graphics Systems Group / Visual Analytics Research Group")
 set(META_AUTHOR_DOMAIN       "https://github.com/varg-dev/treemap-hub")
 set(META_AUTHOR_MAINTAINER   "willy.scheibel@hpi.de")
 set(META_VERSION_MAJOR       "0")
@@ -146,9 +146,6 @@ if(NOT SYSTEM_DIR_INSTALL)
     endif()
 endif()
 
-# Install cmake find script for the project
-install(FILES ${META_PROJECT_NAME}-config.cmake DESTINATION ${INSTALL_ROOT} COMPONENT dev)
-
 # 
 # Project modules
 # 
@@ -157,6 +154,6 @@ set(IDE_FOLDER "Library")
 add_subdirectory(measurements)
 
 set(IDE_FOLDER "Tools")
-add_subdirectory(cli-cpp)
-add_subdirectory(cli-py)
-add_subdirectory(cli-ts)
+# add_subdirectory(cli-cpp)
+# add_subdirectory(cli-py)
+# add_subdirectory(cli-ts)

@@ -2,15 +2,15 @@
 #pragma once
 
 
-#include <tree-data/linearizedtree/LinearizedTree.h>
-#include <tree-data/buffers/LinearizedBuffer.h>
+#include <treemap/linearizedtree/LinearizedTree.h>
+#include <treemap/buffers/LinearizedBuffer.h>
 
-#include <treemap-layouting/layout/RectangularTreemapLayout.h>
+#include <treemap/layout/RectangularTreemapLayout.h>
 
-#include <treemap-measurements/treemap-measurements_api.h>
+#include <measurements/measurements_api.h>
 
 
-class TREEMAP_MEASUREMENTS_API RelativeParentChange
+class MEASUREMENTS_API RelativeParentChange
 {
 public:
     RelativeParentChange();

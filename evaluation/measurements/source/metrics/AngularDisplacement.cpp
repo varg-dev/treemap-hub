@@ -1,5 +1,5 @@
 
-#include <treemap-measurements/metrics/AngularDisplacement.h>
+#include <measurements/metrics/AngularDisplacement.h>
 
 
 #include <limits>
@@ -10,9 +10,7 @@
 #include <glm/common.hpp>
 #include <glm/geometric.hpp>
 
-#include <cppassist/threading/parallelfor.h>
-
-#include <treemap-layouting/layout/Rect.h>
+#include <treemap/layout/Rect.h>
 
 
 namespace
@@ -90,7 +88,7 @@ std::pair<float,float> compareMatrices(std::vector<float> & matrix, std::vector<
 
 void fillMatrix(std::vector<float> & matrix, const LinearizedTree *tree, const std::unordered_map<std::uint32_t, std::uint32_t> & nodeIndexById, const LinearizedBuffer<Rect> &layout, const std::vector<std::uint32_t> & occuringInBothRevisions)
 {
-    cppassist::forEach(size_t(0), matrix.size(), [&](size_t index) {
+    for (auto index = size_t(0); index < matrix.size(); ++index) {
         auto x = 0u;
         auto y = 0u;
 
@@ -114,7 +112,7 @@ void fillMatrix(std::vector<float> & matrix, const LinearizedTree *tree, const s
         {
             matrix[index] = glm::atan(b.y - a.y, b.x - a.x);
         }
-    });
+    }
 }
 
 

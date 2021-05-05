@@ -4,8 +4,7 @@
 # 
 
 find_package(glm       REQUIRED)
-find_package(cppassist REQUIRED)
-find_package(treemap   REQUIRED)
+find_package(treemaphub-cpp-library   REQUIRED HINTS "${CMAKE_CURRENT_SOURCE_DIR}/../../source-cpp")
 
 
 # 
@@ -128,8 +127,7 @@ target_link_libraries(${target}
     PUBLIC
     ${DEFAULT_LIBRARIES}
     glm::glm
-    cppassist::cppassist
-    treemap::treemap-data
+    treemaphub-cpp-library::treemap
 
     INTERFACE
 )

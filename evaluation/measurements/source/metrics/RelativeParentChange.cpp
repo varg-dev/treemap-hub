@@ -1,12 +1,12 @@
 
-#include <treemap-measurements/metrics/RelativeParentChange.h>
+#include <measurements/metrics/RelativeParentChange.h>
 
 
 #include <glm/geometric.hpp>
 #include <glm/common.hpp>
 #include <glm/gtc/constants.hpp>
 
-#include <treemap-layouting/layout/Rect.h>
+#include <treemap/layout/Rect.h>
 
 
 RelativeParentChange::RelativeParentChange()

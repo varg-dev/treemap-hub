@@ -1,0 +1,6 @@
+.localconfig
+build
+build-debug
+CMakeLists.txt.user
+.idea/
+cmake-build-*/

@@ -1,13 +1,14 @@
 
 process.env.CHROME_BIN = require('puppeteer').executablePath()
 
-const webpack_config = require('./webpack.config.js');
+const dev_config = require('./webpack.dev.js');
 
-webpack_config.output = undefined;
-webpack_config.entry = undefined;
-webpack_config.cache = true;
+const config = dev_config();
+config.output = undefined;
+config.entry = undefined;
+config.cache = true;
 
-webpack_config.module.rules.push(
+config.module.rules.push(
     {
         enforce: 'post',
         test: /\.tsx?$/,
@@ -19,12 +20,12 @@ webpack_config.module.rules.push(
 module.exports = {
 
     basePath: '',
-    browsers: [ 'ChromeHeadless' ],
-    files: [ 'tests/**/*.test.ts' ],
+    browsers: ['ChromeHeadless'],
+    files: ['tests/**/*.test.ts'],
     mime: { 'text/x-typescript': ['ts', 'tsx'] },
     frameworks: ['webpack', 'jasmine', 'es6-shim'],
 
-    webpack: webpack_config,
+    webpack: config,
     webpackMiddleware: { quiet: true, stats: { colors: true } },
 
     preprocessors: {

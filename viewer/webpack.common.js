@@ -1,10 +1,7 @@
+'use strict';
 
-module.exports =
-    {
-        mode: 'development',
-        optimization: {
-            minimize: false
-        },
+module.exports = function (env) {
+    return {
         context: __dirname + '/source',
         cache: false,
         entry: {
@@ -13,7 +10,6 @@ module.exports =
 
         output: {
             path: __dirname + '/dist/js',
-            filename: 'treemap-2d.js',
             library: 'Treemap2D',
         },
 
@@ -32,5 +28,5 @@ module.exports =
                 }]
         },
         plugins: [],
-        devtool: 'source-map',
     };
+}

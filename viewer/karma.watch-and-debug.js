@@ -1,11 +1,12 @@
+/* eslint-disable no-undef */
+/* eslint-disable @typescript-eslint/no-var-requires */
 
-import { karma } from './karma.base.config.js';
+const karma = require('./karma.common.js');
 
 karma.port = 9876;
 karma.watch = true;
 karma.singleRun = false;
 
-// eslint-disable-next-line no-undef
 module.exports = function (config) {
     config.set(karma);
 };

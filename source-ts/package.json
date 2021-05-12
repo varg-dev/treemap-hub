@@ -1,0 +1,46 @@
+{
+  "name": "treemap-layout",
+  "repository": "https://github.com/varg-dev/treemap-hub/source-ts",
+  "description": "Treemap Layout Algorithm Library",
+  "version": "0.0.0",
+  "license": "MIT",
+  "author": "Visual Analytics Research Group",
+  "contributors": [
+    {
+      "name": "Daniel Limberger",
+      "email": "github@varg.dev"
+    }
+  ],
+  "devDependencies": {
+    "@types/jasmine": "^3.7.2",
+    "@typescript-eslint/eslint-plugin": "^4.23.0",
+    "@typescript-eslint/parser": "^4.23.0",
+    "eslint": "^7.26.0",
+    "istanbul-instrumenter-loader": "^3.0.1",
+    "jasmine-core": "^3.7.1",
+    "karma": "^6.3.2",
+    "karma-chrome-launcher": "^3.1.0",
+    "karma-coverage": "^2.0.3",
+    "karma-es6-shim": "^1.0.0",
+    "karma-jasmine": "^4.0.1",
+    "karma-junit-reporter": "^2.0.1",
+    "karma-sourcemap-loader": "^0.3.8",
+    "karma-webpack": "^5.0.0",
+    "puppeteer": "^9.1.1",
+    "terser-webpack-plugin": "^5.1.1",
+    "ts-loader": "^9.1.2",
+    "typedoc": "^0.20.36",
+    "typescript": "^4.2.4",
+    "webpack": "^5.37.0",
+    "webpack-cli": "^4.7.0"
+  },
+  "scripts": {
+    "build": "webpack",
+    "build-min": "webpack --config webpack.config.min.js",
+    "lint": "eslint source/**  --ext .ts,.tsx --color --format stylish --resolve-plugins-relative-to .",
+    "deploy": "npm run lint && npm run test && npm run build && npm run build-min && npm run doc",
+    "doc": "typedoc --hideGenerator --readme README.md --module commonjs --mode file --out dist/doc/ source/",
+    "test": "karma start karma.config.js",
+    "start": "karma start karma.watch-and-debug.config.js"
+  }
+}

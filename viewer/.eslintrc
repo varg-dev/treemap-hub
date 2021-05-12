@@ -1,0 +1,41 @@
+{
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "module"
+    },
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "rules": {
+       
+        // https://eslint.org/docs/rules/#stylistic-issues
+        "brace-style":"warn",
+        "comma-spacing": "warn",
+        "comma-style": "warn",
+        "indent": "warn",
+        "no-multi-assign": "warn",
+        "no-tabs": "warn",
+        "no-trailing-spaces": "warn",
+        "no-multiple-empty-lines": "warn",
+
+        // https://eslint.org/docs/rules/#ecmascript-6
+        "arrow-spacing": "warn",
+        "no-confusing-arrow": "warn",
+        "no-duplicate-imports": "error",
+        "no-var": "warn",
+        "prefer-arrow-callback": "warn",
+        "prefer-const": "warn",
+        "sort-imports": "warn",
+
+        // @typescript-eslint
+
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-inferrable-types": "off"
+    }
+}

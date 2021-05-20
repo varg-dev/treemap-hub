@@ -1,21 +1,21 @@
 {
     "parser": "@typescript-eslint/parser",
+    "env": {
+        "browser": true
+    },
     "parserOptions": {
         "ecmaVersion": 6,
         "sourceType": "module"
     },
-    "plugins": [
-        "@typescript-eslint"
-    ],
+    "plugins": ["@typescript-eslint"],
     "extends": [
         "eslint:recommended",
         "plugin:@typescript-eslint/eslint-recommended",
         "plugin:@typescript-eslint/recommended"
     ],
     "rules": {
-       
         // https://eslint.org/docs/rules/#stylistic-issues
-        "brace-style":"warn",
+        "brace-style": "warn",
         "comma-spacing": "warn",
         "comma-style": "warn",
         "indent": "warn",

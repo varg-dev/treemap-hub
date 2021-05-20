@@ -3,23 +3,21 @@
     "compilerOptions": {
         "alwaysStrict": true,
         "allowSyntheticDefaultImports": false,
-        "lib": [
-            // "dom",
-            // "es2016" // important for ie11 support
-        ],
-        "target": "es6",
-        "module": "commonjs",
+        "lib": ["dom"],
+        "target": "ES2020",
+        "module": "ES2020",
+        "moduleResolution": "Node",
         "noImplicitAny": false,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "removeComments": true,
         "preserveConstEnums": true,
         "skipLibCheck": true,
-        "sourceMap": true
+        "sourceMap": true,
+        "declaration": true,
+        "declarationDir": "dist/typings",
         //"strictNullChecks": true
+        "typeRoots": ["./node_modules/@webgpu/types", "./node_modules/@types"]
     },
-    "exclude": [
-        "node_modules",
-        "tests"
-    ]
+    "exclude": ["node_modules", "tests", "dist"]
 }

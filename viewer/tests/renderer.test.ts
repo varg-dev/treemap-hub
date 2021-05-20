@@ -1,13 +1,10 @@
+import { Renderer } from "../source/renderer";
 
-import { Renderer } from '../source/renderer';
+describe("Renderer", () => {
+    it("should initialize instance correctly", () => {
+        const canvas = jasmine.createSpyObj("canvas", []);
+        const renderer = new Renderer(canvas);
 
-
-describe('Renderer', () => {
-
-    it('does nothing', () => {
-
-        expect(true).toEqual(true);
-
+        expect(renderer).toBeInstanceOf(Renderer);
     });
-
 });

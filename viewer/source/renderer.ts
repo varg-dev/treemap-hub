@@ -1,12 +1,12 @@
-import type { TypedArray, TypedArrayConstructor } from "./types/utils";
-import type { TreemapLayout } from "./types/treemap";
-import { Vertex } from "./vertex";
+import type { TypedArray, TypedArrayConstructor } from './types/utils';
+import type { TreemapLayout } from './types/treemap';
+import { Vertex } from './vertex';
 
 /**
  * WebGPU-based 2D Treemap Renderer.
  */
 export class Renderer {
-    static SWAP_CHAIN_FORMAT: GPUTextureFormat = "bgra8unorm";
+    static SWAP_CHAIN_FORMAT: GPUTextureFormat = 'bgra8unorm';
 
     private canvas: HTMLCanvasElement;
     private animationId: number;
@@ -67,7 +67,7 @@ export class Renderer {
             this.createSwapChain();
         } catch (error) {
             console.error(
-                "Error while setting up the API. Please make sure that your browser does support WebGPU.",
+                'Error while setting up the API. Please make sure that your browser does support WebGPU.',
                 error
             );
         }
@@ -75,10 +75,10 @@ export class Renderer {
 
     private async setupRenderPipeline() {
         const vertexShaderModule = this.device.createShaderModule({
-            code: await this.loadShader("/dist/assets/shaders/shader.vert.spv"),
+            code: await this.loadShader('/dist/assets/shaders/shader.vert.spv'),
         });
         const fragmentShaderModule = this.device.createShaderModule({
-            code: await this.loadShader("/dist/assets/shaders/shader.frag.spv"),
+            code: await this.loadShader('/dist/assets/shaders/shader.frag.spv'),
         });
 
         const renderPipelineLayout = this.device.createPipelineLayout({
@@ -88,18 +88,18 @@ export class Renderer {
         this.renderPipeline = this.device.createRenderPipeline({
             layout: renderPipelineLayout,
             primitive: {
-                topology: "triangle-list",
-                frontFace: "ccw",
-                cullMode: "none",
+                topology: 'triangle-list',
+                frontFace: 'ccw',
+                cullMode: 'none',
             },
             vertex: {
                 module: vertexShaderModule,
-                entryPoint: "main",
+                entryPoint: 'main',
                 buffers: [Vertex.bufferLayout()],
             },
             fragment: {
                 module: fragmentShaderModule,
-                entryPoint: "main",
+                entryPoint: 'main',
                 targets: [
                     {
                         format: Renderer.SWAP_CHAIN_FORMAT,
@@ -110,7 +110,7 @@ export class Renderer {
     }
 
     private createSwapChain() {
-        const context = this.canvas.getContext("gpupresent");
+        const context = this.canvas.getContext('gpupresent');
 
         this.swapChain = context.configureSwapChain({
             device: this.device,
@@ -173,14 +173,14 @@ export class Renderer {
                         b: 0.0,
                         a: 1.0,
                     },
-                    storeOp: "store",
+                    storeOp: 'store',
                 },
             ],
         });
 
         renderPass.setPipeline(this.renderPipeline);
         renderPass.setVertexBuffer(0, this.vertexBuffer);
-        renderPass.setIndexBuffer(this.indexBuffer, "uint16");
+        renderPass.setIndexBuffer(this.indexBuffer, 'uint16');
         renderPass.drawIndexed(this.indexCount);
         renderPass.endPass();
 

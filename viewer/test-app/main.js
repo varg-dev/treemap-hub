@@ -1,6 +1,6 @@
-import { Renderer } from "./dist/js/treemap-2d.js";
+import { Renderer } from './dist/js/treemap-2d.js';
 
-const canvas = document.querySelector("#canvas");
+const canvas = document.querySelector('#canvas');
 
 const renderer = new Renderer(canvas);
 

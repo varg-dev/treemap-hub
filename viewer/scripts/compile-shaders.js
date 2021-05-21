@@ -1,11 +1,11 @@
 /* eslint-env node */
 /* eslint-disable @typescript-eslint/no-var-requires */
-const { execFileSync } = require("child_process");
-const fs = require("fs");
-const path = require("path");
+const { execFileSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
-const SHADER_PATH = path.join(__dirname, "../source/assets/shaders");
-const TARGET_PATH = path.join(__dirname, "../source/assets/spirv");
+const SHADER_PATH = path.join(__dirname, '../source/assets/shaders');
+const TARGET_PATH = path.join(__dirname, '../source/assets/spirv');
 
 const getAllFiles = (dirPath, arrayOfFiles) => {
     const files = fs.readdirSync(dirPath);
@@ -13,10 +13,10 @@ const getAllFiles = (dirPath, arrayOfFiles) => {
     arrayOfFiles = arrayOfFiles || [];
 
     files.forEach(file => {
-        if (fs.statSync(dirPath + "/" + file).isDirectory()) {
-            arrayOfFiles = getAllFiles(dirPath + "/" + file, arrayOfFiles);
+        if (fs.statSync(dirPath + '/' + file).isDirectory()) {
+            arrayOfFiles = getAllFiles(dirPath + '/' + file, arrayOfFiles);
         } else {
-            arrayOfFiles.push(path.join(dirPath, "/", file));
+            arrayOfFiles.push(path.join(dirPath, '/', file));
         }
     });
 
@@ -34,9 +34,9 @@ try {
 const shaderFiles = getAllFiles(SHADER_PATH);
 
 for (const shaderPath of shaderFiles) {
-    execFileSync("glslc", [
+    execFileSync('glslc', [
         shaderPath,
-        "-o",
-        path.join(TARGET_PATH, path.basename(shaderPath) + ".spv"),
+        '-o',
+        path.join(TARGET_PATH, path.basename(shaderPath) + '.spv'),
     ]);
 }

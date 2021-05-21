@@ -1,6 +1,8 @@
-import type { TypedArray, TypedArrayConstructor } from './types/utils';
 import type { TreemapLayout } from './types/treemap';
+import type { TypedArray } from './types/utils';
 import { Vertex } from './vertex';
+import { chooseArray } from './utils/array-helper';
+import { loadShader } from './utils/shader-helper';
 
 /**
  * WebGPU-based 2D Treemap Renderer.
@@ -75,10 +77,10 @@ export class Renderer {
 
     private async setupRenderPipeline() {
         const vertexShaderModule = this.device.createShaderModule({
-            code: await this.loadShader('/dist/assets/shaders/shader.vert.spv'),
+            code: await loadShader('shader.vert.spv'),
         });
         const fragmentShaderModule = this.device.createShaderModule({
-            code: await this.loadShader('/dist/assets/shaders/shader.frag.spv'),
+            code: await loadShader('shader.frag.spv'),
         });
 
         const renderPipelineLayout = this.device.createPipelineLayout({
@@ -125,38 +127,13 @@ export class Renderer {
             usage,
             mappedAtCreation: true,
         });
-        const writeArray = new (this.chooseArray(data))(buffer.getMappedRange());
+        const BufferArray = chooseArray(data);
+        const writeArray = new BufferArray(buffer.getMappedRange());
 
         writeArray.set(data);
         buffer.unmap();
 
         return buffer;
-    }
-
-    private chooseArray(data: TypedArray): TypedArrayConstructor {
-        if (data instanceof Float32Array) {
-            return Float32Array;
-        } else if (data instanceof Float64Array) {
-            return Float64Array;
-        } else if (data instanceof Int8Array) {
-            return Int8Array;
-        } else if (data instanceof Int16Array) {
-            return Int16Array;
-        } else if (data instanceof Int32Array) {
-            return Int32Array;
-        } else if (data instanceof Uint8Array) {
-            return Uint8Array;
-        } else if (data instanceof Uint16Array) {
-            return Uint16Array;
-        } else if (data instanceof Uint32Array) {
-            return Uint32Array;
-        }
-    }
-
-    private async loadShader(url: string) {
-        const shader = await (await fetch(url)).arrayBuffer();
-
-        return new Uint32Array(shader);
     }
 
     private render(): void {

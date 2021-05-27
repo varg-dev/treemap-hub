@@ -1,4 +1,5 @@
 import type { TreemapLayout } from './types/treemap';
+import { TreemapNode } from './treemap-node';
 import type { TypedArray } from './types/utils';
 import { Vertex } from './vertex';
 import { chooseArray } from './utils/array-helper';
@@ -31,22 +32,24 @@ export class Renderer {
         await this.setupAPI();
     }
 
-    public async loadTreemap(_layoutData: TreemapLayout): Promise<void> {
-        // TODO: use actual layout data
-        const indices = [0, 1, 2, 1, 3, 2];
+    public async loadTreemap(layoutData: TreemapLayout): Promise<void> {
+        const nodeCount = layoutData.length;
+        const treemapNodes: TreemapNode[] = [];
+        const vertexData = new Float32Array(TreemapNode.VERTEX_BUFFER_SIZE * nodeCount);
+        const indexData = new Uint32Array(TreemapNode.INDEX_BUFFER_SIZE * nodeCount);
 
-        this.vertexBuffer = this.createBuffer(
-            new Float32Array([
-                ...new Vertex([-1.0, -1.0, 0.0], [1.0, 0.0, 0.0]).data,
-                ...new Vertex([-1.0, +1.0, 0.0], [0.0, 1.0, 0.0]).data,
-                ...new Vertex([+1.0, -1.0, 0.0], [0.0, 0.0, 1.0]).data,
-                ...new Vertex([+1.0, +1.0, 0.0], [0.0, 0.0, 0.0]).data,
-            ]),
-            GPUBufferUsage.VERTEX
-        );
+        for (let i = 0; i < nodeCount; i++) {
+            const node = new TreemapNode(layoutData[i]);
 
-        this.indexBuffer = this.createBuffer(new Uint16Array(indices), GPUBufferUsage.INDEX);
-        this.indexCount = indices.length;
+            treemapNodes.push(node);
+
+            vertexData.set(node.vertices(), i * TreemapNode.VERTEX_BUFFER_SIZE);
+            indexData.set(node.indices(i * 4), i * TreemapNode.INDEX_BUFFER_SIZE);
+        }
+
+        this.vertexBuffer = this.createBuffer(vertexData, GPUBufferUsage.VERTEX);
+        this.indexBuffer = this.createBuffer(indexData, GPUBufferUsage.INDEX);
+        this.indexCount = indexData.length;
 
         await this.setupRenderPipeline();
     }
@@ -157,7 +160,7 @@ export class Renderer {
 
         renderPass.setPipeline(this.renderPipeline);
         renderPass.setVertexBuffer(0, this.vertexBuffer);
-        renderPass.setIndexBuffer(this.indexBuffer, 'uint16');
+        renderPass.setIndexBuffer(this.indexBuffer, 'uint32');
         renderPass.drawIndexed(this.indexCount);
         renderPass.endPass();
 

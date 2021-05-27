@@ -1,5 +1,5 @@
 type Position = [number, number, number];
-type Color = [number, number, number];
+export type Color = [number, number, number];
 
 export class Vertex {
     #position: Position;

@@ -1,3 +1,3 @@
-type TreemapNode = [number, number, number, number];
+export type TreemapNodeData = [number, number, number, number];
 
-export type TreemapLayout = TreemapNode[];
+export type TreemapLayout = TreemapNodeData[];

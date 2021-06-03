@@ -8,6 +8,7 @@
         <script src="./main.js" type="module"></script>
         <style>
             body {
+                font-family: sans-serif;
                 display: grid;
                 gap: 16px;
                 place-content: center;
@@ -25,5 +26,11 @@
     <body>
         <input type="file" name="layout" id="layout-input" />
         <canvas id="canvas" width="800" height="800"></canvas>
+        <div>
+            <label for="start-color">Start color: </label>
+            <input type="color" id="start-color" />
+            <label for="end-color">End color: </label>
+            <input type="color" id="end-color" />
+        </div>
     </body>
 </html>

@@ -3,6 +3,7 @@ import { TreemapNode } from './treemap-node';
 import type { TypedArray } from './types/utils';
 import { Vertex } from './vertex';
 import { chooseArray } from './utils/array-helper';
+import { generateSchemeBitmap } from './utils/color-scheme-helper';
 import { loadShader } from './utils/shader-helper';
 
 /**
@@ -22,10 +23,18 @@ export class Renderer {
     private indexBuffer: GPUBuffer;
     private indexCount: number;
 
+    private colorScheme: ImageBitmap;
+    private colorSchemeTexture: GPUTexture;
+    private bindGroups: GPUBindGroup[];
     private renderPipeline: GPURenderPipeline;
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
+
+        this.bindGroups = [];
+
+        // Create default color scheme
+        this.setColorScheme('black', 'white');
     }
 
     public async initialize(): Promise<void> {
@@ -62,6 +71,10 @@ export class Renderer {
         cancelAnimationFrame(this.animationId);
     }
 
+    public setColorScheme(startColor: string, endColor: string): void {
+        this.colorScheme = generateSchemeBitmap(startColor, endColor);
+    }
+
     private async setupAPI(): Promise<void> {
         try {
             const adapter = await navigator.gpu.requestAdapter();
@@ -86,12 +99,7 @@ export class Renderer {
             code: await loadShader('shader.frag.spv'),
         });
 
-        const renderPipelineLayout = this.device.createPipelineLayout({
-            bindGroupLayouts: [],
-        });
-
         this.renderPipeline = this.device.createRenderPipeline({
-            layout: renderPipelineLayout,
             primitive: {
                 topology: 'triangle-list',
                 frontFace: 'ccw',
@@ -112,6 +120,24 @@ export class Renderer {
                 ],
             },
         });
+
+        if (!this.colorSchemeTexture) {
+            this.colorSchemeTexture = this.device.createTexture({
+                format: 'rgba8unorm',
+                size: {
+                    width: this.colorScheme.width,
+                    height: this.colorScheme.height,
+                },
+                usage:
+                    GPUTextureUsage.COPY_DST |
+                    GPUTextureUsage.SAMPLED |
+                    GPUTextureUsage.RENDER_ATTACHMENT,
+            });
+
+            const sampler = this.device.createSampler();
+
+            this.addBindGroup(sampler, this.colorSchemeTexture.createView());
+        }
     }
 
     private createSwapChain() {
@@ -139,7 +165,22 @@ export class Renderer {
         return buffer;
     }
 
+    private addBindGroup(...entries: GPUBindingResource[]) {
+        const bindGroup = this.device.createBindGroup({
+            layout: this.renderPipeline.getBindGroupLayout(this.bindGroups.length),
+            entries: entries.map((entry, index) => ({ binding: index, resource: entry })),
+        });
+
+        this.bindGroups.push(bindGroup);
+    }
+
     private render(): void {
+        this.queue.copyExternalImageToTexture(
+            { source: this.colorScheme },
+            { texture: this.colorSchemeTexture },
+            { width: this.colorScheme.width, height: this.colorScheme.height }
+        );
+
         const frameView = this.swapChain.getCurrentTexture().createView();
 
         const encoder = this.device.createCommandEncoder();
@@ -159,6 +200,11 @@ export class Renderer {
         });
 
         renderPass.setPipeline(this.renderPipeline);
+
+        this.bindGroups.forEach((bindGroup, index) => {
+            renderPass.setBindGroup(index, bindGroup);
+        });
+
         renderPass.setVertexBuffer(0, this.vertexBuffer);
         renderPass.setIndexBuffer(this.indexBuffer, 'uint32');
         renderPass.drawIndexed(this.indexCount);

@@ -25,6 +25,11 @@ export class Renderer {
     private instanceCount: number;
     private indexCount: number;
 
+    private renderParams: {
+        maxDepth: number;
+    };
+    private renderParamsBuffer: GPUBuffer;
+
     private colorScheme: ImageBitmap;
     private colorSchemeTexture: GPUTexture;
     private bindGroups: GPUBindGroup[];
@@ -34,6 +39,9 @@ export class Renderer {
         this.canvas = canvas;
 
         this.bindGroups = [];
+        this.renderParams = {
+            maxDepth: 0,
+        };
 
         // Create default color scheme
         this.setColorScheme('black', 'white');
@@ -44,27 +52,41 @@ export class Renderer {
     }
 
     public async loadTreemap(layoutData: TreemapLayout): Promise<void> {
-        const nodeCount = layoutData.length;
-        const nodeSize = TreemapNode.bufferSize() / Float32Array.BYTES_PER_ELEMENT;
+        if (!this.vertexBuffer || !this.indexBuffer) {
+            const vertexData = new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0]);
+            const indexData = new Uint32Array([0, 1, 2, 2, 1, 3]);
 
-        const vertexData = new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0]);
-        const instanceData = new Float32Array(nodeSize * nodeCount);
-        const indexData = new Uint32Array([0, 1, 2, 2, 1, 3]);
-
-        for (let i = 0; i < nodeCount; i++) {
-            instanceData.set(TreemapNode.bufferData(layoutData[i]), i * nodeSize);
+            this.vertexBuffer = this.createBuffer(vertexData, GPUBufferUsage.VERTEX);
+            this.indexBuffer = this.createBuffer(indexData, GPUBufferUsage.INDEX);
+            this.indexCount = indexData.length;
         }
 
-        this.vertexBuffer = this.createBuffer(vertexData, GPUBufferUsage.VERTEX);
+        const nodeCount = layoutData.length;
+        const nodeSize = TreemapNode.bufferSize() / Float32Array.BYTES_PER_ELEMENT;
+        const instanceData = new Float32Array(nodeSize * nodeCount);
+
+        this.renderParams.maxDepth = 0;
+
+        for (let i = 0; i < nodeCount; i++) {
+            const bufferData = TreemapNode.bufferData(layoutData[i]);
+            const nodeDepth = bufferData[5];
+
+            if (nodeDepth > this.renderParams.maxDepth) {
+                this.renderParams.maxDepth = nodeDepth;
+            }
+
+            instanceData.set(bufferData, i * nodeSize);
+        }
+
         this.instanceBuffer = this.createBuffer(instanceData, GPUBufferUsage.VERTEX);
-        this.indexBuffer = this.createBuffer(indexData, GPUBufferUsage.INDEX);
         this.instanceCount = nodeCount;
-        this.indexCount = indexData.length;
 
         if (!this.renderPipeline) {
             await this.setupRenderPipeline();
             this.createColorScheme();
         }
+
+        this.setRenderParams();
     }
 
     public start(): void {
@@ -151,6 +173,10 @@ export class Renderer {
         return buffer;
     }
 
+    private writeBuffer(buffer: GPUBuffer, data: TypedArray) {
+        this.queue.writeBuffer(buffer, 0, data);
+    }
+
     private addBindGroup(...entries: GPUBindingResource[]) {
         const bindGroup = this.device.createBindGroup({
             layout: this.renderPipeline.getBindGroupLayout(this.bindGroups.length),
@@ -176,6 +202,21 @@ export class Renderer {
         const sampler = this.device.createSampler();
 
         this.addBindGroup(sampler, this.colorSchemeTexture.createView());
+    }
+
+    private setRenderParams() {
+        const data = new Float32Array([this.renderParams.maxDepth]);
+
+        if (this.renderParamsBuffer) {
+            this.writeBuffer(this.renderParamsBuffer, data);
+        } else {
+            this.renderParamsBuffer = this.createBuffer(
+                data,
+                GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM
+            );
+
+            this.addBindGroup({ buffer: this.renderParamsBuffer });
+        }
     }
 
     private render(): void {

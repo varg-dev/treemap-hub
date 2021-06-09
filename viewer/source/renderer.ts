@@ -20,7 +20,9 @@ export class Renderer {
     private swapChain: GPUSwapChain;
 
     private vertexBuffer: GPUBuffer;
+    private instanceBuffer: GPUBuffer;
     private indexBuffer: GPUBuffer;
+    private instanceCount: number;
     private indexCount: number;
 
     private colorScheme: ImageBitmap;
@@ -43,24 +45,26 @@ export class Renderer {
 
     public async loadTreemap(layoutData: TreemapLayout): Promise<void> {
         const nodeCount = layoutData.length;
-        const treemapNodes: TreemapNode[] = [];
-        const vertexData = new Float32Array(TreemapNode.VERTEX_BUFFER_SIZE * nodeCount);
-        const indexData = new Uint32Array(TreemapNode.INDEX_BUFFER_SIZE * nodeCount);
+        const nodeSize = TreemapNode.bufferSize() / Float32Array.BYTES_PER_ELEMENT;
+
+        const vertexData = new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0]);
+        const instanceData = new Float32Array(nodeSize * nodeCount);
+        const indexData = new Uint32Array([0, 1, 2, 2, 1, 3]);
 
         for (let i = 0; i < nodeCount; i++) {
-            const node = new TreemapNode(layoutData[i]);
-
-            treemapNodes.push(node);
-
-            vertexData.set(node.vertices(), i * TreemapNode.VERTEX_BUFFER_SIZE);
-            indexData.set(node.indices(i * 4), i * TreemapNode.INDEX_BUFFER_SIZE);
+            instanceData.set(TreemapNode.bufferData(layoutData[i]), i * nodeSize);
         }
 
         this.vertexBuffer = this.createBuffer(vertexData, GPUBufferUsage.VERTEX);
+        this.instanceBuffer = this.createBuffer(instanceData, GPUBufferUsage.VERTEX);
         this.indexBuffer = this.createBuffer(indexData, GPUBufferUsage.INDEX);
+        this.instanceCount = nodeCount;
         this.indexCount = indexData.length;
 
-        await this.setupRenderPipeline();
+        if (!this.renderPipeline) {
+            await this.setupRenderPipeline();
+            this.createColorScheme();
+        }
     }
 
     public start(): void {
@@ -108,7 +112,7 @@ export class Renderer {
             vertex: {
                 module: vertexShaderModule,
                 entryPoint: 'main',
-                buffers: [Vertex.bufferLayout()],
+                buffers: [Vertex.bufferLayout(), TreemapNode.bufferLayout()],
             },
             fragment: {
                 module: fragmentShaderModule,
@@ -120,24 +124,6 @@ export class Renderer {
                 ],
             },
         });
-
-        if (!this.colorSchemeTexture) {
-            this.colorSchemeTexture = this.device.createTexture({
-                format: 'rgba8unorm',
-                size: {
-                    width: this.colorScheme.width,
-                    height: this.colorScheme.height,
-                },
-                usage:
-                    GPUTextureUsage.COPY_DST |
-                    GPUTextureUsage.SAMPLED |
-                    GPUTextureUsage.RENDER_ATTACHMENT,
-            });
-
-            const sampler = this.device.createSampler();
-
-            this.addBindGroup(sampler, this.colorSchemeTexture.createView());
-        }
     }
 
     private createSwapChain() {
@@ -174,6 +160,24 @@ export class Renderer {
         this.bindGroups.push(bindGroup);
     }
 
+    private createColorScheme() {
+        this.colorSchemeTexture = this.device.createTexture({
+            format: 'rgba8unorm',
+            size: {
+                width: this.colorScheme.width,
+                height: this.colorScheme.height,
+            },
+            usage:
+                GPUTextureUsage.COPY_DST |
+                GPUTextureUsage.SAMPLED |
+                GPUTextureUsage.RENDER_ATTACHMENT,
+        });
+
+        const sampler = this.device.createSampler();
+
+        this.addBindGroup(sampler, this.colorSchemeTexture.createView());
+    }
+
     private render(): void {
         this.queue.copyExternalImageToTexture(
             { source: this.colorScheme },
@@ -206,8 +210,9 @@ export class Renderer {
         });
 
         renderPass.setVertexBuffer(0, this.vertexBuffer);
+        renderPass.setVertexBuffer(1, this.instanceBuffer);
         renderPass.setIndexBuffer(this.indexBuffer, 'uint32');
-        renderPass.drawIndexed(this.indexCount);
+        renderPass.drawIndexed(this.indexCount, this.instanceCount);
         renderPass.endPass();
 
         this.queue.submit([encoder.finish()]);

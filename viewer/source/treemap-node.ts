@@ -1,31 +1,24 @@
-import { Color, Vertex } from './vertex';
+import { calculateBufferSize, createVertexBufferLayout } from './utils/buffer-helper';
 import type { TreemapNodeData } from './types/treemap';
 
 export class TreemapNode {
-    public static VERTEX_BUFFER_SIZE = 4 * 9;
-    public static INDEX_BUFFER_SIZE = 6;
+    private static VERTEX_BUFFER_ATTRIBUTES: GPUVertexFormat[] = [
+        'float32x2', // vec2 position
+        'float32x2', // vec2 size
+        'float32x3', // vec3 info (ID, depth, isLeaf)
+    ];
 
-    #vertices: Vertex[];
-
-    constructor(data: TreemapNodeData) {
+    static bufferData(data: TreemapNodeData): number[] {
         const [id, depth, isLeaf, x, y, width, height] = data;
-        const color: Color = [0, 0, 0].map(() => Math.random()) as Color;
 
-        this.#vertices = [];
-
-        this.#vertices.push(new Vertex(id, depth, Boolean(isLeaf), [x, y, 0.0], color));
-        this.#vertices.push(new Vertex(id, depth, Boolean(isLeaf), [x, y + height, 0.0], color));
-        this.#vertices.push(new Vertex(id, depth, Boolean(isLeaf), [x + width, y, 0.0], color));
-        this.#vertices.push(
-            new Vertex(id, depth, Boolean(isLeaf), [x + width, y + height, 0.0], color)
-        );
+        return [x, y, width, height, id, depth, isLeaf];
     }
 
-    public vertices(): number[] {
-        return this.#vertices.map(vertex => vertex.data).reduce((agg, val) => [...agg, ...val]);
+    static bufferLayout(): GPUVertexBufferLayout {
+        return createVertexBufferLayout('instance', 1, TreemapNode.VERTEX_BUFFER_ATTRIBUTES);
     }
 
-    public indices(offset: number): number[] {
-        return [0, 1, 2, 1, 3, 2].map(index => index + offset);
+    static bufferSize(): number {
+        return calculateBufferSize(TreemapNode.VERTEX_BUFFER_ATTRIBUTES);
     }
 }

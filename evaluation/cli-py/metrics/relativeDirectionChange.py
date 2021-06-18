@@ -33,7 +33,7 @@ def _rdc(layout1, layout2): #Relative Direction Change of two layouts
     rdc = rdc/n
     return rdc
 
-def rdc_ri(layout1, layout2): #Relative Direction Change Rotation-Invariant
+def _rdc_ri(layout1, layout2): #Relative Direction Change Rotation-Invariant of two layouts
     matrix1 = fillmatrix(layout1)
     matrix2 = fillmatrix(layout2)
     rdcri = 0
@@ -52,3 +52,9 @@ def rdc(layouts): # relative direciton change of two or more layouts in a sorted
     for i in range (len(layouts)-1):
         rdcsum += _rdc(layouts[i], layouts[i+1])
     return rdcsum/(len(layouts)-1)
+
+def rdc_ri(layouts): # relative direciton change rotation-invariant of two or more layouts in a sorted array
+    rdcrisum = 0
+    for i in range (len(layouts)-1):
+        rdcrisum += _rdc_ri(layouts[i], layouts[i+1])
+    return rdcrisum/(len(layouts)-1)

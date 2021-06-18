@@ -23,7 +23,7 @@ def rowAVG(i, matrix1, matrix2):
     avg = avg/(n-1)
     return avg
 
-def rdc(layout1, layout2): #Relative Direction Change
+def _rdc(layout1, layout2): #Relative Direction Change of two layouts
     matrix1 = fillmatrix(layout1)
     matrix2 = fillmatrix(layout2)
     rdc= 0
@@ -46,3 +46,9 @@ def rdc_ri(layout1, layout2): #Relative Direction Change Rotation-Invariant
         rdcri += avg
     rdcri = rdcri/(n*n-n)
     return rdcri
+
+def rdc(layouts): # relative direciton change of two or more layouts in a sorted array
+    rdcsum = 0
+    for i in range (len(layouts)-1):
+        rdcsum += _rdc(layouts[i], layouts[i+1])
+    return rdcsum/(len(layouts)-1)

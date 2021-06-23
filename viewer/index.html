@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Treemap 2D Rendering Library</title>
+        <style>
+            body {
+                font-family: sans-serif;
+                display: grid;
+                gap: 16px;
+                place-content: center;
+                place-items: center;
+                height: 100vh;
+                margin: 0;
+                padding: 0;
+            }
+
+            #canvas {
+                border: 1px solid rgba(0, 0, 0, 0.2);
+            }
+        </style>
+        <script type="module">
+            import { Renderer } from './source/treemap-2d.ts';
+
+            /** @type {HTMLCanvasElement} */
+            const canvas = document.querySelector('#canvas');
+            /** @type {HTMLInputElement} */
+            const layoutInput = document.querySelector('#layout-input');
+            /** @type {HTMLInputElement} */
+            const startColorInput = document.querySelector('#start-color');
+            /** @type {HTMLInputElement} */
+            const endColorInput = document.querySelector('#end-color');
+
+            const renderer = new Renderer(canvas);
+            let startColor = '#000000';
+            let endColor = '#ffffff';
+
+            startColorInput.value = startColor;
+            endColorInput.value = endColor;
+
+            (async () => {
+                await renderer.initialize();
+
+                renderer.setColorScheme(startColor, endColor);
+
+                layoutInput.addEventListener('change', async () => {
+                    const layoutFile = layoutInput.files.item(0);
+
+                    if (layoutFile) {
+                        renderer.stop();
+
+                        const layoutText = await layoutFile.text();
+                        const treemapLayout = JSON.parse(layoutText);
+
+                        console.time('load treemap');
+                        await renderer.loadTreemap(treemapLayout);
+                        console.timeEnd('load treemap');
+                        renderer.start();
+                    }
+                });
+
+                startColorInput.addEventListener('input', event => {
+                    startColor = event.target.value;
+                    renderer.setColorScheme(startColor, endColor, false);
+                });
+
+                endColorInput.addEventListener('input', event => {
+                    endColor = event.target.value;
+                    renderer.setColorScheme(startColor, endColor);
+                });
+            })();
+        </script>
+    </head>
+    <body>
+        <input type="file" name="layout" id="layout-input" />
+        <canvas id="canvas" width="800" height="800"></canvas>
+        <div>
+            <label for="start-color">Start color: </label>
+            <input type="color" id="start-color" />
+            <label for="end-color">End color: </label>
+            <input type="color" id="end-color" />
+        </div>
+    </body>
+</html>

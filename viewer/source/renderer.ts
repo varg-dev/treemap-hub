@@ -119,10 +119,10 @@ export class Renderer {
 
     private async setupRenderPipeline() {
         const vertexShaderModule = this.device.createShaderModule({
-            code: await loadShader('shader.vert.spv'),
+            code: await loadShader('shader.vert'),
         });
         const fragmentShaderModule = this.device.createShaderModule({
-            code: await loadShader('shader.frag.spv'),
+            code: await loadShader('shader.frag'),
         });
 
         this.renderPipeline = this.device.createRenderPipeline({

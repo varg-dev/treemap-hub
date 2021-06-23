@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite';
 import path from 'path';
 
+import shaders from './scripts/shaders-plugin';
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-    assetsInclude: new RegExp('\\.spv$'),
     build: {
         lib: {
             entry: path.resolve(__dirname, 'source/treemap-2d.ts'),
@@ -21,5 +22,5 @@ export default defineConfig(({ mode }) => ({
         },
         sourcemap: true,
     },
-    plugins: [],
+    plugins: [shaders()],
 }));

@@ -2,21 +2,20 @@
     "compileOnSave": false,
     "compilerOptions": {
         "alwaysStrict": true,
-        "allowSyntheticDefaultImports": false,
+        "allowSyntheticDefaultImports": true,
         "lib": ["dom"],
         "target": "ES2020",
         "module": "ES2020",
         "moduleResolution": "Node",
+        "noEmit": true, // Vite handles transpiling, so tsc shouldn't emit files
+        "isolatedModules": true,
         "noImplicitAny": false,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
         "removeComments": true,
         "preserveConstEnums": true,
         "skipLibCheck": true,
-        "sourceMap": true,
         "declaration": true,
         "declarationDir": "dist/typings",
-        //"strictNullChecks": true
+        "types": ["vite/client"],
         "typeRoots": ["./node_modules/@webgpu/types", "./node_modules/@types"]
     },
     "exclude": ["node_modules", "tests", "dist"]

@@ -1,4 +1,4 @@
-import { ShaderType, compileShader } from './compile';
+import { ShaderType, compileShader } from './compile-shader';
 import type { Plugin } from 'vite';
 
 export default function shaders(): Plugin {

@@ -15,8 +15,7 @@
         "skipLibCheck": true,
         "declaration": true,
         "declarationDir": "dist/typings",
-        "types": ["vite/client"],
-        "typeRoots": ["./node_modules/@webgpu/types", "./node_modules/@types"]
+        "types": ["vite/client", "@webgpu/types"]
     },
     "exclude": ["node_modules", "tests", "dist"]
 }

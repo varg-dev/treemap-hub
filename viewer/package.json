@@ -50,15 +50,12 @@
     },
     "scripts": {
         "start": "vite",
-        "prestart": "npm run compile-shaders",
         "build": "tsc && vite build",
-        "prebuild": "npm run compile-shaders",
         "build-min": "tsc && vite build --mode minified",
         "lint": "eslint source/**  --ext .ts,.tsx --color --format stylish --resolve-plugins-relative-to .",
         "deploy": "npm run lint && npm run test && npm run build && npm run build-min && npm run doc",
         "doc": "typedoc --hideGenerator --readme README.md --module commonjs --mode file --out dist/doc/ source/",
         "test": "karma start karma.default.js",
-        "test:watch": "karma start karma.watch-and-debug.js",
-        "compile-shaders": "node ./scripts/compile-shaders.js"
+        "test:watch": "karma start karma.watch-and-debug.js"
     }
 }

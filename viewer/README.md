@@ -1,9 +1,5 @@
 # Treemap 2D Rendering Library (TypeScript)
 
-## Prerequisites
-
--   [glslc](https://github.com/google/shaderc) - Compiles GLSL shaders to SPIR-V. The latest builds can be downloaded [here](https://github.com/google/shaderc/blob/main/downloads.md).
-
 ## Browser Support
 
 In order to use the WebGPU-based Treemap viewer you have to use one of the following browsers:

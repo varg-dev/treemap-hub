@@ -1,5 +1,4 @@
 node_modules
 dist
 deploy
-package-lock.json
 source/assets/spirv/

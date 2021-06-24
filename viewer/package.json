@@ -22,6 +22,7 @@
             "require": "./dist/treemap-2d.cjs.js"
         }
     },
+    "typings": "./dist/typings/treemap-2d.d.ts",
     "devDependencies": {
         "@types/gl-matrix": "^3.2.0",
         "@types/jasmine": "^3.7.2",
@@ -44,18 +45,20 @@
         "karma-webpack": "^5.0.0",
         "prettier": "~2.3.0",
         "puppeteer": "^9.1.1",
+        "rimraf": "^3.0.2",
         "typedoc": "^0.20.36",
         "typescript": "^4.2.4",
         "vite": "^2.3.7"
     },
     "scripts": {
         "start": "vite",
-        "build": "tsc && vite build",
-        "build-min": "tsc && vite build --mode minified",
+        "build": "npm run clean && tsc && vite build",
+        "build-min": "npm run clean && tsc && vite build --mode minified",
         "lint": "eslint source/**  --ext .ts,.tsx --color --format stylish --resolve-plugins-relative-to .",
         "deploy": "npm run lint && npm run test && npm run build && npm run build-min && npm run doc",
         "doc": "typedoc --hideGenerator --readme README.md --module commonjs --mode file --out dist/doc/ source/",
         "test": "karma start karma.default.js",
-        "test:watch": "karma start karma.watch-and-debug.js"
+        "test:watch": "karma start karma.watch-and-debug.js",
+        "clean": "rimraf dist"
     }
 }

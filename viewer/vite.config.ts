@@ -6,6 +6,7 @@ import shaders from './scripts/shaders-plugin';
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
     build: {
+        outDir: 'dist/lib',
         lib: {
             entry: path.resolve(__dirname, 'source/treemap-2d.ts'),
             name: 'Treemap2D',
@@ -13,7 +14,7 @@ export default defineConfig(({ mode }) => ({
         },
         minify: mode === 'minified' ? 'terser' : false,
         rollupOptions: {
-            // External dependencies that shouldn't be bundles go here
+            // External dependencies that shouldn't be bundled go here
             external: [],
             output: {
                 // Global variables to use in the UMD build for externalized dependencies

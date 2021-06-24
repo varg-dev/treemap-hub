@@ -2,3 +2,4 @@ node_modules
 dist
 deploy
 source/assets/spirv/
+*.tgz

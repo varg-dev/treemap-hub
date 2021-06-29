@@ -1,5 +1,7 @@
 import pandas as pd
 from metrics import relativeDirectionChange
+from metrics import locationDrift
+from metrics import averageAspectRatio
 
 def readerForMockdata(path):
     layout = pd.read_csv(filepath_or_buffer=path, delimiter=',')
@@ -13,4 +15,6 @@ layout2014 = readerForMockdata('../../datasets/names-layouts/popular-names-hilbe
 
 layouts = [layout2012, layout2013, layout2014]
 
-print(relativeDirectionChange.rdc(layouts))
+print("relative direction change 2012-2013-2014: ", relativeDirectionChange.rdc(layouts))
+print("location drift 2012-2013-2014: ", locationDrift.meanLocationDrift(layouts))
+print("average aspect ratio 2012: ", averageAspectRatio.averageAspectRatio(layout2012))

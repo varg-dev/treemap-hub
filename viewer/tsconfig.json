@@ -14,7 +14,7 @@
         "skipLibCheck": true,
         "declaration": true,
         "declarationDir": "dist/typings",
-        "types": ["vite/client", "@webgpu/types"]
+        "types": ["vite/client", "@webgpu/types", "jest"]
     },
     "include": ["source/**/*"]
 }

@@ -3,6 +3,7 @@
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
         "slevesque.shader",
-        "cadenas.vscode-glsllint"
+        "cadenas.vscode-glsllint",
+        "kavod-io.vscode-jest-test-adapter"
     ]
 }

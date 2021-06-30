@@ -97,8 +97,8 @@ export class Renderer {
         cancelAnimationFrame(this.animationId);
     }
 
-    public setColorScheme(startColor: string, endColor: string): void {
-        this.colorScheme = generateSchemeBitmap(startColor, endColor);
+    public async setColorScheme(startColor: string, endColor: string): Promise<void> {
+        this.colorScheme = await generateSchemeBitmap(startColor, endColor);
     }
 
     private async setupAPI(): Promise<void> {

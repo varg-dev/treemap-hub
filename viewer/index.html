@@ -43,7 +43,7 @@
             (async () => {
                 await renderer.initialize();
 
-                renderer.setColorScheme(startColor, endColor);
+                await renderer.setColorScheme(startColor, endColor);
 
                 layoutInput.addEventListener('change', async () => {
                     const layoutFile = layoutInput.files.item(0);

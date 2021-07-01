@@ -10,14 +10,14 @@ import { loadShader } from './utils/shader-helper';
  * WebGPU-based 2D Treemap Renderer.
  */
 export class Renderer {
-    static SWAP_CHAIN_FORMAT: GPUTextureFormat = 'bgra8unorm';
-
     private canvas: HTMLCanvasElement;
     private animationId: number;
 
+    private adapter: GPUAdapter;
     private device: GPUDevice;
     private queue: GPUQueue;
-    private swapChain: GPUSwapChain;
+    private context: GPUPresentationContext;
+    private presentationFormat: GPUTextureFormat;
 
     private vertexBuffer: GPUBuffer;
     private instanceBuffer: GPUBuffer;
@@ -103,12 +103,11 @@ export class Renderer {
 
     private async setupAPI(): Promise<void> {
         try {
-            const adapter = await navigator.gpu.requestAdapter();
-
-            this.device = await adapter.requestDevice();
+            this.adapter = await navigator.gpu.requestAdapter();
+            this.device = await this.adapter.requestDevice();
             this.queue = this.device.queue;
 
-            this.createSwapChain();
+            this.createPresentationContext();
         } catch (error) {
             console.error(
                 'Error while setting up the API. Please make sure that your browser does support WebGPU.',
@@ -141,19 +140,20 @@ export class Renderer {
                 entryPoint: 'main',
                 targets: [
                     {
-                        format: Renderer.SWAP_CHAIN_FORMAT,
+                        format: this.presentationFormat,
                     },
                 ],
             },
         });
     }
 
-    private createSwapChain() {
-        const context = this.canvas.getContext('gpupresent');
+    private createPresentationContext() {
+        this.context = this.canvas.getContext('gpupresent');
+        this.presentationFormat = this.context.getPreferredFormat(this.adapter);
 
-        this.swapChain = context.configureSwapChain({
+        this.context.configure({
             device: this.device,
-            format: Renderer.SWAP_CHAIN_FORMAT,
+            format: this.presentationFormat,
             usage: GPUTextureUsage.RENDER_ATTACHMENT,
         });
     }
@@ -226,7 +226,7 @@ export class Renderer {
             { width: this.colorScheme.width, height: this.colorScheme.height }
         );
 
-        const frameView = this.swapChain.getCurrentTexture().createView();
+        const frameView = this.context.getCurrentTexture().createView();
 
         const encoder = this.device.createCommandEncoder();
         const renderPass = encoder.beginRenderPass({

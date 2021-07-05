@@ -76,32 +76,8 @@ export class Renderer {
         }
 
         if (!this.vertexBuffer || !this.indexBuffer) {
-            // prettier-ignore
-            const vertexData = new Float32Array([
-                0, 0, 0, 0,
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                1, 1, 0, 0,
-                0, 0, 0, 1,
-                1, 0, 0, 1,
-                0, 1, 0, 1,
-                1, 1, 0, 1,
-                0, 0, 0, 2,
-                1, 0, 0, 2,
-                0, 1, 0, 2,
-                1, 1, 0, 2,
-                0, 0, 0, 3,
-                1, 0, 0, 3,
-                0, 1, 0, 3,
-                1, 1, 0, 3,
-            ]);
-            // prettier-ignore
-            const indexData = new Uint32Array([
-                0, 1, 2, 2, 1, 3,
-                4, 5, 6, 6, 5, 7,
-                8, 9, 10, 10, 9, 11,
-                12, 13, 14, 14, 13, 15
-            ]);
+            const vertexData = new Float32Array(TreemapNode.vertexData());
+            const indexData = new Uint32Array(TreemapNode.indexData());
 
             this.vertexBuffer = this.createBuffer(vertexData, GPUBufferUsage.VERTEX);
             this.indexBuffer = this.createBuffer(indexData, GPUBufferUsage.INDEX);
@@ -115,7 +91,7 @@ export class Renderer {
         this.renderParams.maxDepth = 0;
 
         for (let i = 0; i < nodeCount; i++) {
-            const bufferData = TreemapNode.bufferData(this.layoutData[i]);
+            const bufferData = TreemapNode.instanceData(this.layoutData[i]);
             const nodeDepth = bufferData[5];
 
             if (nodeDepth > this.renderParams.maxDepth) {

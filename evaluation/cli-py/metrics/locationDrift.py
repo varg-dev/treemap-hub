@@ -12,7 +12,7 @@ def centerOfGravity(layouts, maxindex): #calculates the center of gravity for ea
         for layout in layouts:
             local_x = layout.loc[layout['#index'] == i]['center_x'].values
             local_y = layout.loc[layout['#index'] == i]['center_y'].values
-            if len(local_x) == 0 or len(local_x) == 0:
+            if len(local_x) == 0 or len(local_y) == 0:
                 values -=1
             else:
                 cog_x += local_x[0]
@@ -29,11 +29,11 @@ def itemLocationDrift(layouts, maxindex, cog): #calculates the location drift fo
         for layout in layouts:
             local_x = layout.loc[layout['#index'] == i]['center_x'].values
             local_y = layout.loc[layout['#index'] == i]['center_y'].values
-            cog_x = cog.loc[cog['#index'] == i]['center_x'].values
-            cog_y = cog.loc[cog['#index'] == i]['center_y'].values
-            if len(local_x) == 0 or len(local_x) == 0:
+            if len(local_x) == 0 or len(local_y) == 0:
                 values -=1
             else:
+                cog_x = cog.loc[cog['#index'] == i]['center_x'].values
+                cog_y = cog.loc[cog['#index'] == i]['center_y'].values
                 drift += math.dist((local_x[0], local_y[0]),(cog_x[0], cog_y[0]))
         if values > 0:
             ild = ild.append(pd.DataFrame([[i, drift/values]], columns = ['#index', 'drift']))

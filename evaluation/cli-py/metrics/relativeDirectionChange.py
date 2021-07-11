@@ -1,3 +1,5 @@
+# Relative Direction Change as described in "Relative Direction Change – A Topology-based Metric for Layout Stability in Treemaps" by Sebastian Hahn, Joseph Bethge and Jürgen Döllner
+
 import math
 import pandas as pd
 import numpy as np
@@ -8,6 +10,7 @@ import numpy as np
 def fillmatrix(layout):
     matrix = np.zeros( (layout['#index'].max()+1, layout['#index'].max()+1) )
     #If a index is not existent the value in the matrix there is zero. is that correct or does that destroy something? what to do with disappearing indices?
+    # -> schauen ob knoten in beidem drin ist, wenn nicht: nicht mit berechnen (auch n entsprechend reduzieren)
     for index, startrow in layout.iterrows():
         for index,endrow in layout.iterrows():
             temp = math.atan2(float(endrow['center_y'])-float(startrow['center_y']), float(endrow['center_x'])-float(startrow['center_x']))
@@ -15,32 +18,26 @@ def fillmatrix(layout):
     return matrix
 
 def rowAVG(i, matrix1, matrix2):
-    avg = 0
     n = matrix1.shape[1]
-    for j in range (0,n):
-        if not i==j:
-            avg += abs(matrix1[i][j]-matrix2[i][j])
-    avg = avg/(n-1)
+    avg = sum(pow(matrix1[i][j]-matrix2[i][j], 2) for j in range (n) if i != j)
+    avg = math.sqrt(avg)/(n-1)
     return avg
 
 def _rdc(layout1, layout2): #Relative Direction Change of two layouts
     matrix1 = fillmatrix(layout1)
     matrix2 = fillmatrix(layout2)
-    rdc= 0
     n = matrix1.shape[0] #probably max from the matrixes? What happens if they dont have the same size?
-    for i in range (0,n):
-        rdc += rowAVG(i, matrix1, matrix2)
-    rdc = rdc/n
-    return rdc
+    rdc = sum(rowAVG(i, matrix1, matrix2) for i in range(n))
+    return rdc/n
 
 def _rdc_ri(layout1, layout2): #Relative Direction Change Rotation-Invariant of two layouts
     matrix1 = fillmatrix(layout1)
-    matrix2 = fillmatrix(layout2)
+    matrix2 = fillmatrix(layout2) #matrix nicht speichern sondern berechnung inline bauen
     rdcri = 0
     n = matrix1.shape[0]
-    for i in range (0,n):
+    for i in range (n):
         avg = 0
-        for j in range (0,n):
+        for j in range (n):
             if not i==j:
                 avg += abs(abs(matrix1[i][j]-matrix2[i][j])-rowAVG(i, matrix1, matrix2))
         rdcri += avg
@@ -48,13 +45,9 @@ def _rdc_ri(layout1, layout2): #Relative Direction Change Rotation-Invariant of 
     return rdcri
 
 def rdc(layouts): # relative direciton change of two or more layouts in a sorted array
-    rdcsum = 0
-    for i in range (len(layouts)-1):
-        rdcsum += _rdc(layouts[i], layouts[i+1])
+    rdcsum = sum(_rdc(layouts[i], layouts[i+1]) for i in range (len(layouts)-1))
     return rdcsum/(len(layouts)-1)
 
 def rdc_ri(layouts): # relative direciton change rotation-invariant of two or more layouts in a sorted array
-    rdcrisum = 0
-    for i in range (len(layouts)-1):
-        rdcrisum += _rdc_ri(layouts[i], layouts[i+1])
+    rdcrisum = sum(_rdc_ri(layouts[i], layouts[i + 1]) for i in range(len(layouts) - 1))
     return rdcrisum/(len(layouts)-1)

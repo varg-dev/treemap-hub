@@ -4,6 +4,7 @@ from metrics import averageAspectRatio
 import mockdata as md
 import pandas as pd
 import io
+from typing import List
 
 from fastapi import FastAPI, File, UploadFile
 
@@ -36,27 +37,36 @@ async def read_item(metric):
     return {"no valid metric selected"}
 
 
-@app.post("/uploadfile/{metric}")
-async def create_upload_file(metric, file: UploadFile = File(...)):
-    content = await file.read()
-    dataframe = pd.read_csv(io.StringIO(content.decode()))
+@app.post("/uploadfiles/{metric}")
+async def create_multiple_files(metric, files: List[UploadFile] = File(...)):
+    layouts = []
+    for file in files:
+        content = await file.read()
+        layout = pd.read_csv(io.StringIO(content.decode()))
+        layout['center_x']=layout['left']+(layout['width']/2)                   #ggf anpassen um verschiedene Formate abzudecken
+        layout['center_y']=layout['bottom']+(layout['height']/2)
+        layouts.append(layout)
 
     if metric == "average-aspect-ratio":
-        aar = averageAspectRatio.averageAspectRatio(dataframe)
-        return {
-            "Dataset": file.filename,
-            "average aspect ratio": aar}
+        result = []
+        for i in range(len(layouts)):
+            aar = averageAspectRatio.averageAspectRatio(layouts[i])
+            result.append({
+                "Dataset": files[i].filename,
+                "average aspect ratio": aar
+            })
+        return {str(result)}
 
     if metric == "relative-direction-change":
-        rdc = relativeDirectionChange.rdc([dataframe])
+        rdc = relativeDirectionChange.rdc(layouts)
         return {
-            "Dataset": file.filename,
+            "Dataset": [file.filename for file in files],
             "relative direction change": rdc}
 
     if metric == "location-drift":
-        ld = locationDrift.meanLocationDrift([dataframe])
+        ld = locationDrift.meanLocationDrift(layouts)
         return {
-            "Dataset": file.filename,
+            "Dataset": [file.filename for file in files],
             "location drift": ld}
-
-    return {"no valid metric selected"}
+    
+    return {"files": len(layouts)}

@@ -24,8 +24,34 @@ def rowAVG(i, matrix1, matrix2):
     return avg
 
 def _rdc(layout1, layout2): #Relative Direction Change of two layouts
+    n = max(len(layout1), len(layout2))
+    thisrdc = 0
+    for i in range(n):
+        temp = 0
+        for j in range (n):
+            if len(layout1.loc[layout1['#index'] == j]) == 0 \
+                or len(layout1.loc[layout1['#index'] == i]) == 0 \
+                or len(layout2.loc[layout2['#index'] == j]) == 0 \
+                or len(layout2.loc[layout2['#index'] == i]) == 0:
+                n -= 1
+            elif i != j:
+                matrix1ij = math.atan2(
+                                float(layout1.loc[layout1['#index'] == j].center_y)
+                                    -float(layout1.loc[layout1['#index'] == i].center_y), 
+                                float(layout1.loc[layout1['#index'] == j].center_x)
+                                    -float(layout1.loc[layout1['#index'] == i].center_x))
+                matrix2ij = math.atan2(
+                                float(layout2.loc[layout2['#index'] == j].center_y)
+                                    -float(layout2.loc[layout2['#index'] == i].center_y), 
+                                float(layout2.loc[layout2['#index'] == j].center_x)
+                                    -float(layout2.loc[layout2['#index'] == i].center_x))
+                temp += pow(matrix1ij-matrix2ij, 2)
+        thisrdc += math.sqrt(temp)/(n-1)
+    return thisrdc/n
+
+def _oldrdc(layout1, layout2): #Relative Direction Change of two layouts
     matrix1 = fillmatrix(layout1)
-    matrix2 = fillmatrix(layout2)
+    matrix2 = fillmatrix(layout2) #matrix nicht speichern sondern berechnung inline bauen
     n = matrix1.shape[0] #probably max from the matrixes? What happens if they dont have the same size?
     rdc = sum(rowAVG(i, matrix1, matrix2) for i in range(n))
     return rdc/n

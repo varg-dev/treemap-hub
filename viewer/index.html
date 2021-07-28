@@ -19,6 +19,8 @@
 
             #canvas {
                 border: 1px solid rgba(0, 0, 0, 0.2);
+                height: 800px;
+                width: 800px;
             }
         </style>
         <script type="module">
@@ -28,15 +30,19 @@
             const canvas = document.querySelector('#canvas');
             /** @type {HTMLInputElement} */
             const layoutInput = document.querySelector('#layout-input');
+            /** @type {HTMLSelectElement} */
+            const presetSelect = document.querySelector('#preset-select');
             /** @type {HTMLInputElement} */
             const startColorInput = document.querySelector('#start-color');
             /** @type {HTMLInputElement} */
             const endColorInput = document.querySelector('#end-color');
 
             const renderer = new Renderer(canvas);
+            let preset = 'depth';
             let startColor = '#000000';
             let endColor = '#ffffff';
 
+            presetSelect.value = preset;
             startColorInput.value = startColor;
             endColorInput.value = endColor;
 
@@ -61,9 +67,14 @@
                     }
                 });
 
+                presetSelect.addEventListener('change', event => {
+                    preset = event.target.value;
+                    renderer.setRenderingPreset(preset);
+                });
+
                 startColorInput.addEventListener('input', event => {
                     startColor = event.target.value;
-                    renderer.setColorScheme(startColor, endColor, false);
+                    renderer.setColorScheme(startColor, endColor);
                 });
 
                 endColorInput.addEventListener('input', event => {
@@ -75,12 +86,21 @@
     </head>
     <body>
         <input type="file" name="layout" id="layout-input" />
-        <canvas id="canvas" width="800" height="800"></canvas>
+        <canvas id="canvas" width="4096" height="4096"></canvas>
         <div>
-            <label for="start-color">Start color: </label>
-            <input type="color" id="start-color" />
-            <label for="end-color">End color: </label>
-            <input type="color" id="end-color" />
+            <div>
+                <label for="preset-select">Preset: </label>
+                <select id="preset-select">
+                    <option value="depth">Depth</option>
+                    <option value="outlines">Outlines</option>
+                </select>
+            </div>
+            <div>
+                <label for="start-color">Start color: </label>
+                <input type="color" id="start-color" />
+                <label for="end-color">End color: </label>
+                <input type="color" id="end-color" />
+            </div>
         </div>
     </body>
 </html>

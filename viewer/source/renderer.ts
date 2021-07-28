@@ -1,6 +1,6 @@
+import { TypedArray, createPresets } from './types/utils';
 import type { TreemapLayout } from './types/treemap';
 import { TreemapNode } from './treemap-node';
-import type { TypedArray } from './types/utils';
 import { Vertex } from './vertex';
 import { chooseArray } from './utils/array-helper';
 import { generateSchemeBitmap } from './utils/color-scheme-helper';
@@ -10,6 +10,11 @@ import { loadShader } from './utils/shader-helper';
  * WebGPU-based 2D Treemap Renderer.
  */
 export class Renderer {
+    private static PRESETS = createPresets({
+        depth: ['default.vert', 'depth.frag'],
+        outlines: ['outlines.vert', 'outlines.frag'],
+    });
+
     private canvas: HTMLCanvasElement;
     private animationId: number;
 
@@ -26,10 +31,13 @@ export class Renderer {
     private indexCount: number;
 
     private renderParams: {
+        resolution: number; // This assumes the same resolution for width & height
         maxDepth: number;
     };
     private renderParamsBuffer: GPUBuffer;
 
+    private layoutData: TreemapLayout | undefined;
+    private renderingPreset: keyof typeof Renderer.PRESETS;
     private colorScheme: ImageBitmap;
     private colorSchemeTexture: GPUTexture;
     private bindGroups: GPUBindGroup[];
@@ -40,8 +48,12 @@ export class Renderer {
 
         this.bindGroups = [];
         this.renderParams = {
+            resolution: this.canvas.width,
             maxDepth: 0,
         };
+
+        // Set default rendering preset
+        this.renderingPreset = 'depth';
 
         // Create default color scheme
         this.setColorScheme('black', 'white');
@@ -52,23 +64,25 @@ export class Renderer {
     }
 
     public async loadTreemap(layoutData: TreemapLayout): Promise<void> {
+        this.preprocessData(layoutData);
+
         if (!this.vertexBuffer || !this.indexBuffer) {
-            const vertexData = new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0]);
-            const indexData = new Uint32Array([0, 1, 2, 2, 1, 3]);
+            const vertexData = new Float32Array(TreemapNode.vertexData());
+            const indexData = new Uint32Array(TreemapNode.indexData());
 
             this.vertexBuffer = this.createBuffer(vertexData, GPUBufferUsage.VERTEX);
             this.indexBuffer = this.createBuffer(indexData, GPUBufferUsage.INDEX);
             this.indexCount = indexData.length;
         }
 
-        const nodeCount = layoutData.length;
+        const nodeCount = this.layoutData.length;
         const nodeSize = TreemapNode.bufferSize() / Float32Array.BYTES_PER_ELEMENT;
         const instanceData = new Float32Array(nodeSize * nodeCount);
 
         this.renderParams.maxDepth = 0;
 
         for (let i = 0; i < nodeCount; i++) {
-            const bufferData = TreemapNode.bufferData(layoutData[i]);
+            const bufferData = TreemapNode.instanceData(this.layoutData[i]);
             const nodeDepth = bufferData[5];
 
             if (nodeDepth > this.renderParams.maxDepth) {
@@ -83,7 +97,10 @@ export class Renderer {
 
         if (!this.renderPipeline) {
             await this.setupRenderPipeline();
-            this.createColorScheme();
+
+            if (this.renderingPreset === 'depth') {
+                this.createColorScheme();
+            }
         }
 
         this.setRenderParams();
@@ -95,6 +112,31 @@ export class Renderer {
 
     public stop(): void {
         cancelAnimationFrame(this.animationId);
+    }
+
+    public async setRenderingPreset(preset: keyof typeof Renderer.PRESETS): Promise<void> {
+        const isRunning = Boolean(this.animationId);
+
+        if (isRunning) {
+            this.stop();
+        }
+
+        this.renderingPreset = preset;
+
+        // TODO: When rendering with proper depth/stencil testing, it might not be necessary
+        // to recreate all buffers & bindgroups, but just the rendering pipeline as the buffer data
+        // does not change
+        if (this.layoutData) {
+            this.renderPipeline = null;
+            this.bindGroups = [];
+            this.renderParamsBuffer.destroy();
+            this.renderParamsBuffer = null;
+            await this.loadTreemap(this.layoutData);
+
+            if (isRunning) {
+                this.start();
+            }
+        }
     }
 
     public async setColorScheme(startColor: string, endColor: string): Promise<void> {
@@ -117,11 +159,13 @@ export class Renderer {
     }
 
     private async setupRenderPipeline() {
+        const [vertexShader, fragmentShader] = Renderer.PRESETS[this.renderingPreset];
+
         const vertexShaderModule = this.device.createShaderModule({
-            code: await loadShader('shader.vert'),
+            code: await loadShader(vertexShader),
         });
         const fragmentShaderModule = this.device.createShaderModule({
-            code: await loadShader('shader.frag'),
+            code: await loadShader(fragmentShader),
         });
 
         this.renderPipeline = this.device.createRenderPipeline({
@@ -186,6 +230,19 @@ export class Renderer {
         this.bindGroups.push(bindGroup);
     }
 
+    private preprocessData(layoutData: TreemapLayout) {
+        // TODO: This is hacky because it assumes a node order by depth from root to deepest leaves
+        // This should be handled with proper depth/stencil testing
+        if (
+            (this.renderingPreset === 'outlines' && layoutData[0][0] === 0) ||
+            (this.renderingPreset === 'depth' && layoutData[0][0] !== 0)
+        ) {
+            this.layoutData = layoutData.reverse();
+        } else {
+            this.layoutData = layoutData;
+        }
+    }
+
     private createColorScheme() {
         this.colorSchemeTexture = this.device.createTexture({
             format: 'rgba8unorm',
@@ -205,7 +262,7 @@ export class Renderer {
     }
 
     private setRenderParams() {
-        const data = new Float32Array([this.renderParams.maxDepth]);
+        const data = new Float32Array([this.renderParams.resolution, this.renderParams.maxDepth]);
 
         if (this.renderParamsBuffer) {
             this.writeBuffer(this.renderParamsBuffer, data);
@@ -234,9 +291,9 @@ export class Renderer {
                 {
                     view: frameView,
                     loadValue: {
-                        r: 0.0,
-                        g: 0.0,
-                        b: 0.0,
+                        r: 1.0,
+                        g: 1.0,
+                        b: 1.0,
                         a: 1.0,
                     },
                     storeOp: 'store',

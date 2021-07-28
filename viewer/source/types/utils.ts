@@ -17,3 +17,11 @@ export type TypedArrayConstructor =
     | Uint8ArrayConstructor
     | Uint16ArrayConstructor
     | Uint32ArrayConstructor;
+
+type Preset = [string, string]; // tuple semantic: [vertex shader, fragment shader]
+
+/**
+ * This is a constrained identity function (CIF) for the rendering presets.
+ */
+export const createPresets = <Presets extends Record<string, Preset>>(presets: Presets): Presets =>
+    presets;

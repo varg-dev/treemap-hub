@@ -11,22 +11,22 @@ export class TreemapNode {
     static vertexData(): number[] {
         // prettier-ignore
         return [
-            // top border
+            // top border (w = 0)
             0, 0, 0, 0,
             1, 0, 0, 0,
             0, 1, 0, 0,
             1, 1, 0, 0,
-            // right border
+            // right border (w = 1)
             0, 0, 0, 1,
             1, 0, 0, 1,
             0, 1, 0, 1,
             1, 1, 0, 1,
-            // bottom border
+            // bottom border (w = 2)
             0, 0, 0, 2,
             1, 0, 0, 2,
             0, 1, 0, 2,
             1, 1, 0, 2,
-            // left border
+            // left border (w = 3)
             0, 0, 0, 3,
             1, 0, 0, 3,
             0, 1, 0, 3,

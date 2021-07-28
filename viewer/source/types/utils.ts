@@ -18,7 +18,8 @@ export type TypedArrayConstructor =
     | Uint16ArrayConstructor
     | Uint32ArrayConstructor;
 
-type Preset = [string, string];
+type Preset = [string, string]; // tuple semantic: [vertex shader, fragment shader]
+
 /**
  * This is a constrained identity function (CIF) for the rendering presets.
  */

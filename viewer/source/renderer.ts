@@ -64,16 +64,7 @@ export class Renderer {
     }
 
     public async loadTreemap(layoutData: TreemapLayout): Promise<void> {
-        // TODO: This is hacky because it assumes a node order by depth from root to deepest leaves
-        // This should be handled with proper depth/stencil testing
-        if (
-            (this.renderingPreset === 'outlines' && layoutData[0][0] === 0) ||
-            (this.renderingPreset === 'depth' && layoutData[0][0] !== 0)
-        ) {
-            this.layoutData = layoutData.reverse();
-        } else {
-            this.layoutData = layoutData;
-        }
+        this.preprocessData(layoutData);
 
         if (!this.vertexBuffer || !this.indexBuffer) {
             const vertexData = new Float32Array(TreemapNode.vertexData());
@@ -106,7 +97,10 @@ export class Renderer {
 
         if (!this.renderPipeline) {
             await this.setupRenderPipeline();
-            this.createColorScheme();
+
+            if (this.renderingPreset === 'depth') {
+                this.createColorScheme();
+            }
         }
 
         this.setRenderParams();
@@ -122,15 +116,16 @@ export class Renderer {
 
     public async setRenderingPreset(preset: keyof typeof Renderer.PRESETS): Promise<void> {
         const isRunning = Boolean(this.animationId);
-        this.renderingPreset = preset;
 
         if (isRunning) {
             this.stop();
         }
 
-        // TODO: When rendering with depth/stencil testing is implemented properly, it should
-        // not be necessary to recreate all buffers & bindgroups, but just the rendering pipeline
-        // as the buffer data does not change
+        this.renderingPreset = preset;
+
+        // TODO: When rendering with proper depth/stencil testing, it might not be necessary
+        // to recreate all buffers & bindgroups, but just the rendering pipeline as the buffer data
+        // does not change
         if (this.layoutData) {
             this.renderPipeline = null;
             this.bindGroups = [];
@@ -233,6 +228,19 @@ export class Renderer {
         });
 
         this.bindGroups.push(bindGroup);
+    }
+
+    private preprocessData(layoutData: TreemapLayout) {
+        // TODO: This is hacky because it assumes a node order by depth from root to deepest leaves
+        // This should be handled with proper depth/stencil testing
+        if (
+            (this.renderingPreset === 'outlines' && layoutData[0][0] === 0) ||
+            (this.renderingPreset === 'depth' && layoutData[0][0] !== 0)
+        ) {
+            this.layoutData = layoutData.reverse();
+        } else {
+            this.layoutData = layoutData;
+        }
     }
 
     private createColorScheme() {

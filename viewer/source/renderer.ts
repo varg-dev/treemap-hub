@@ -23,6 +23,8 @@ export class Renderer {
     private queue: GPUQueue;
     private context: GPUPresentationContext;
     private presentationFormat: GPUTextureFormat;
+    private offscreenTexture: GPUTexture;
+    private offscreenBuffer: GPUBuffer;
 
     private vertexBuffer: GPUBuffer;
     private instanceBuffer: GPUBuffer;
@@ -112,12 +114,43 @@ export class Renderer {
 
     public stop(): void {
         cancelAnimationFrame(this.animationId);
+        this.animationId = null;
+    }
+
+    public isRunning(): boolean {
+        return Boolean(this.animationId);
+    }
+
+    public async snapshot(): Promise<Blob> {
+        if (this.isRunning()) {
+            this.stop();
+            this.render(true); // Renders only one frame
+            this.start();
+        } else {
+            this.render(true);
+        }
+
+        await this.offscreenBuffer.mapAsync(GPUMapMode.READ);
+
+        const buffer = this.offscreenBuffer.getMappedRange();
+        const array = new Uint8ClampedArray(buffer.slice(0));
+        const data = new ImageData(array, this.canvas.width);
+
+        this.offscreenBuffer.unmap();
+
+        const exportCanvas = document.createElement('canvas');
+        exportCanvas.width = this.canvas.width;
+        exportCanvas.height = this.canvas.height;
+
+        const ctx = exportCanvas.getContext('2d');
+
+        ctx.putImageData(data, 0, 0);
+
+        return new Promise(resolve => exportCanvas.toBlob(resolve));
     }
 
     public async setRenderingPreset(preset: keyof typeof Renderer.PRESETS): Promise<void> {
-        const isRunning = Boolean(this.animationId);
-
-        if (isRunning) {
+        if (this.isRunning()) {
             this.stop();
         }
 
@@ -133,7 +166,7 @@ export class Renderer {
             this.renderParamsBuffer = null;
             await this.loadTreemap(this.layoutData);
 
-            if (isRunning) {
+            if (!this.isRunning()) {
                 this.start();
             }
         }
@@ -199,6 +232,21 @@ export class Renderer {
             device: this.device,
             format: this.presentationFormat,
             usage: GPUTextureUsage.RENDER_ATTACHMENT,
+        });
+
+        // We recreate the offscreen target on resize (= context recreation)
+        this.offscreenTexture = this.device.createTexture({
+            format: this.presentationFormat,
+            size: {
+                width: this.canvas.width,
+                height: this.canvas.height,
+            },
+            usage: GPUTextureUsage.COPY_SRC | GPUTextureUsage.RENDER_ATTACHMENT,
+        });
+
+        this.offscreenBuffer = this.device.createBuffer({
+            size: this.canvas.width * this.canvas.height * 4,
+            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
         });
     }
 
@@ -276,14 +324,16 @@ export class Renderer {
         }
     }
 
-    private render(): void {
+    private render(offscreen = false): void {
         this.queue.copyExternalImageToTexture(
             { source: this.colorScheme },
             { texture: this.colorSchemeTexture },
             { width: this.colorScheme.width, height: this.colorScheme.height }
         );
 
-        const frameView = this.context.getCurrentTexture().createView();
+        const frameView = offscreen
+            ? this.offscreenTexture.createView()
+            : this.context.getCurrentTexture().createView();
 
         const encoder = this.device.createCommandEncoder();
         const renderPass = encoder.beginRenderPass({
@@ -313,8 +363,26 @@ export class Renderer {
         renderPass.drawIndexed(this.indexCount, this.instanceCount);
         renderPass.endPass();
 
+        if (offscreen) {
+            encoder.copyTextureToBuffer(
+                {
+                    texture: this.offscreenTexture,
+                },
+                {
+                    buffer: this.offscreenBuffer,
+                    bytesPerRow: this.canvas.width * 4,
+                },
+                {
+                    width: this.canvas.width,
+                    height: this.canvas.height,
+                }
+            );
+        }
+
         this.queue.submit([encoder.finish()]);
 
-        this.animationId = requestAnimationFrame(() => this.render());
+        if (!offscreen) {
+            this.animationId = requestAnimationFrame(() => this.render());
+        }
     }
 }

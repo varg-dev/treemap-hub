@@ -30,6 +30,8 @@
             const canvas = document.querySelector('#canvas');
             /** @type {HTMLInputElement} */
             const layoutInput = document.querySelector('#layout-input');
+            /** @type {HTMLButtonElement} */
+            const saveImageBtn = document.querySelector('#save-image-btn');
             /** @type {HTMLSelectElement} */
             const presetSelect = document.querySelector('#preset-select');
             /** @type {HTMLInputElement} */
@@ -67,6 +69,15 @@
                     }
                 });
 
+                saveImageBtn.addEventListener('click', async () => {
+                    const image = await renderer.snapshot();
+                    const handle = await showSaveFilePicker({ suggestedName: 'treemap.png' });
+                    const stream = await handle.createWritable();
+
+                    await stream.write(image);
+                    await stream.close();
+                });
+
                 presetSelect.addEventListener('change', event => {
                     preset = event.target.value;
                     renderer.setRenderingPreset(preset);
@@ -85,7 +96,10 @@
         </script>
     </head>
     <body>
-        <input type="file" name="layout" id="layout-input" />
+        <div>
+            <input type="file" name="layout" id="layout-input" />
+            <button id="save-image-btn">Save image</button>
+        </div>
         <canvas id="canvas" width="4096" height="4096"></canvas>
         <div>
             <div>

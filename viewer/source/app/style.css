@@ -1,0 +1,16 @@
+body {
+    font-family: sans-serif;
+    display: grid;
+    gap: 16px;
+    place-content: center;
+    place-items: center;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+#canvas {
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    height: 800px;
+    width: 800px;
+}

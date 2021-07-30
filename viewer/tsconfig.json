@@ -14,7 +14,8 @@
         "skipLibCheck": true,
         "declaration": true,
         "declarationDir": "dist/typings",
-        "types": ["vite/client", "@webgpu/types", "jest"]
+        "types": ["vite/client", "@webgpu/types", "jest", "@types/wicg-file-system-access"]
     },
-    "include": ["source/**/*"]
+    "include": ["source/**/*"],
+    "exclude": ["source/app/*"]
 }

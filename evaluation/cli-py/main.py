@@ -12,6 +12,7 @@ from fastapi import FastAPI, File, UploadFile
 class Metric(str, Enum):
     aar = "average-aspect-ratio"
     rdc = "relative-direction-change"
+    rdc_ri = "relative-direction-change-rotation-invariant"
     ld = "location-drift"
 
 app = FastAPI()
@@ -32,6 +33,13 @@ async def read_item(metric: Metric):
         return {
             "Dataset": "names-layouts/popular-names-hilbert-greedy-false-false-0.6",
             "relative direction change 2012-2013-2014": rdc}
+    
+    if metric == Metric.rdc_ri:
+        mockdata = md.generateMockdata()
+        rdc_ri = relativeDirectionChange.rdc_ri(mockdata)
+        return {
+            "Dataset": "names-layouts/popular-names-hilbert-greedy-false-false-0.6",
+            "relative direction change rotation invariant 2012-2013-2014": rdc_ri}
 
     if metric == Metric.ld:
         mockdata = md.generateMockdata()
@@ -66,6 +74,12 @@ async def create_multiple_files(metric: Metric, files: List[UploadFile] = File(.
         return {
             "Dataset": [file.filename for file in files],
             "relative direction change": rdc}
+
+    if metric == Metric.rdc_ri:
+        rdc_ri = relativeDirectionChange.rdc_ri(layouts)
+        return {
+            "Dataset": [file.filename for file in files],
+            "relative direction change rotation invariant": rdc_ri}
 
     if metric == Metric.ld:
         ld = locationDrift.meanLocationDrift(layouts)

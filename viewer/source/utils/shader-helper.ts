@@ -7,7 +7,9 @@ const loadGlslShader = async (name: string): Promise<Uint32Array> => {
 };
 
 const loadWgslShader = async (name: string): Promise<string> => {
-    const shader: string = (await import(`../assets/shaders/wgsl/${name}.wgsl?raw`)).default;
+    const shader: string = await Deno.readTextFile(
+        `../viewer/source/assets/shaders/wgsl/${name}.wgsl`
+    );
 
     return shader;
 };

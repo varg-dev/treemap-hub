@@ -1,4 +1,4 @@
-import { createVertexBufferLayout } from './utils/buffer-helper';
+import { createVertexBufferLayout } from './utils/buffer-helper.ts';
 
 export class Vertex {
     static bufferLayout(): GPUVertexBufferLayout {

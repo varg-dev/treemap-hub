@@ -1,10 +1,15 @@
-import { TypedArray, createPresets } from './types/utils';
-import type { TreemapLayout } from './types/treemap';
-import { TreemapNode } from './treemap-node';
-import { Vertex } from './vertex';
-import { chooseArray } from './utils/array-helper';
-import { generateSchemeBitmap } from './utils/color-scheme-helper';
-import { loadShader } from './utils/shader-helper';
+import { TypedArray, createPresets } from './types/utils.ts';
+import type { TreemapLayout } from './types/treemap.ts';
+import { TreemapNode } from './treemap-node.ts';
+import { Vertex } from './vertex.ts';
+import { chooseArray } from './utils/array-helper.ts';
+// import { generateSchemeBitmap } from './utils/color-scheme-helper.ts';
+import { loadShader } from './utils/shader-helper.ts';
+
+type CanvasOptions = {
+    width: number;
+    height: number;
+};
 
 /**
  * WebGPU-based 2D Treemap Renderer.
@@ -15,37 +20,37 @@ export class Renderer {
         outlines: ['outlines.vert', 'outlines.frag'],
     });
 
-    private canvas: HTMLCanvasElement;
-    private animationId: number;
+    private canvas: CanvasOptions;
+    private animationId: number | undefined;
 
-    private adapter: GPUAdapter;
-    private device: GPUDevice;
-    private queue: GPUQueue;
-    private context: GPUPresentationContext;
-    private presentationFormat: GPUTextureFormat;
-    private offscreenTexture: GPUTexture;
-    private offscreenBuffer: GPUBuffer;
+    private adapter: GPUAdapter | null | undefined;
+    private device: GPUDevice | undefined;
+    private queue: GPUQueue | undefined;
+    // private context: GPUPresentationContext | undefined;
+    private presentationFormat: GPUTextureFormat | undefined;
+    private offscreenTexture: GPUTexture | undefined;
+    private offscreenBuffer: GPUBuffer | undefined;
 
-    private vertexBuffer: GPUBuffer;
-    private instanceBuffer: GPUBuffer;
-    private indexBuffer: GPUBuffer;
-    private instanceCount: number;
-    private indexCount: number;
+    private vertexBuffer: GPUBuffer | undefined;
+    private instanceBuffer: GPUBuffer | undefined;
+    private indexBuffer: GPUBuffer | undefined;
+    private instanceCount: number | undefined;
+    private indexCount: number | undefined;
 
     private renderParams: {
         resolution: number; // This assumes the same resolution for width & height
         maxDepth: number;
     };
-    private renderParamsBuffer: GPUBuffer;
+    private renderParamsBuffer: GPUBuffer | undefined;
 
     private layoutData: TreemapLayout | undefined;
     private renderingPreset: keyof typeof Renderer.PRESETS;
-    private colorScheme: ImageBitmap;
-    private colorSchemeTexture: GPUTexture;
+    // private colorScheme: ImageBitmap;
+    // private colorSchemeTexture: GPUTexture;
     private bindGroups: GPUBindGroup[];
-    private renderPipeline: GPURenderPipeline;
+    private renderPipeline: GPURenderPipeline | undefined;
 
-    constructor(canvas: HTMLCanvasElement) {
+    constructor(canvas: CanvasOptions) {
         this.canvas = canvas;
 
         this.bindGroups = [];
@@ -77,14 +82,14 @@ export class Renderer {
             this.indexCount = indexData.length;
         }
 
-        const nodeCount = this.layoutData.length;
+        const nodeCount = this.layoutData!.length;
         const nodeSize = TreemapNode.bufferSize() / Float32Array.BYTES_PER_ELEMENT;
         const instanceData = new Float32Array(nodeSize * nodeCount);
 
         this.renderParams.maxDepth = 0;
 
         for (let i = 0; i < nodeCount; i++) {
-            const bufferData = TreemapNode.instanceData(this.layoutData[i]);
+            const bufferData = TreemapNode.instanceData(this.layoutData![i]);
             const nodeDepth = bufferData[5];
 
             if (nodeDepth > this.renderParams.maxDepth) {
@@ -100,28 +105,28 @@ export class Renderer {
         if (!this.renderPipeline) {
             await this.setupRenderPipeline();
 
-            if (this.renderingPreset === 'depth') {
-                this.createColorScheme();
-            }
+            // if (this.renderingPreset === 'depth') {
+            //     this.createColorScheme();
+            // }
         }
 
         this.setRenderParams();
     }
 
     public start(): void {
-        this.animationId = requestAnimationFrame(() => this.render());
+        // this.animationId = requestAnimationFrame(() => this.render());
     }
 
     public stop(): void {
-        cancelAnimationFrame(this.animationId);
-        this.animationId = null;
+        // cancelAnimationFrame(this.animationId);
+        // this.animationId = null;
     }
 
     public isRunning(): boolean {
         return Boolean(this.animationId);
     }
 
-    public async snapshot(): Promise<Blob> {
+    public async snapshot(): Promise<Uint8Array> {
         if (this.isRunning()) {
             this.stop();
             this.render(true); // Renders only one frame
@@ -130,23 +135,24 @@ export class Renderer {
             this.render(true);
         }
 
-        await this.offscreenBuffer.mapAsync(GPUMapMode.READ);
+        await this.offscreenBuffer!.mapAsync(GPUMapMode.READ);
 
-        const buffer = this.offscreenBuffer.getMappedRange();
+        const buffer = this.offscreenBuffer!.getMappedRange();
         const array = new Uint8ClampedArray(buffer.slice(0));
-        const data = new ImageData(array, this.canvas.width);
+        // const data = new ImageData(array, this.canvas.width);
 
-        this.offscreenBuffer.unmap();
+        this.offscreenBuffer!.unmap();
 
-        const exportCanvas = document.createElement('canvas');
-        exportCanvas.width = this.canvas.width;
-        exportCanvas.height = this.canvas.height;
+        // const exportCanvas = document.createElement('canvas');
+        // exportCanvas.width = this.canvas.width;
+        // exportCanvas.height = this.canvas.height;
 
-        const ctx = exportCanvas.getContext('2d');
+        // const ctx = exportCanvas.getContext('2d');
 
-        ctx.putImageData(data, 0, 0);
+        // ctx.putImageData(data, 0, 0);
 
-        return new Promise(resolve => exportCanvas.toBlob(resolve));
+        // return new Promise(resolve => exportCanvas.toBlob(resolve));
+        return new Uint8Array(array.slice());
     }
 
     public async setRenderingPreset(preset: keyof typeof Renderer.PRESETS): Promise<void> {
@@ -160,10 +166,10 @@ export class Renderer {
         // to recreate all buffers & bindgroups, but just the rendering pipeline as the buffer data
         // does not change
         if (this.layoutData) {
-            this.renderPipeline = null;
+            this.renderPipeline = undefined;
             this.bindGroups = [];
-            this.renderParamsBuffer.destroy();
-            this.renderParamsBuffer = null;
+            this.renderParamsBuffer!.destroy();
+            this.renderParamsBuffer = undefined;
             await this.loadTreemap(this.layoutData);
 
             if (!this.isRunning()) {
@@ -173,13 +179,13 @@ export class Renderer {
     }
 
     public async setColorScheme(startColor: string, endColor: string): Promise<void> {
-        this.colorScheme = await generateSchemeBitmap(startColor, endColor);
+        // this.colorScheme = await generateSchemeBitmap(startColor, endColor);
     }
 
     private async setupAPI(): Promise<void> {
         try {
             this.adapter = await navigator.gpu.requestAdapter();
-            this.device = await this.adapter.requestDevice();
+            this.device = await this.adapter!.requestDevice();
             this.queue = this.device.queue;
 
             this.createPresentationContext();
@@ -198,10 +204,10 @@ export class Renderer {
             loadShader(fragmentShaderName),
         ]);
 
-        const vertexShaderModule = this.device.createShaderModule({ code: vertexShader });
-        const fragmentShaderModule = this.device.createShaderModule({ code: fragmentShader });
+        const vertexShaderModule = this.device!.createShaderModule({ code: vertexShader });
+        const fragmentShaderModule = this.device!.createShaderModule({ code: fragmentShader });
 
-        this.renderPipeline = this.device.createRenderPipeline({
+        this.renderPipeline = this.device!.createRenderPipeline({
             primitive: {
                 topology: 'triangle-list',
                 frontFace: 'ccw',
@@ -217,7 +223,7 @@ export class Renderer {
                 entryPoint: 'main',
                 targets: [
                     {
-                        format: this.presentationFormat,
+                        format: 'rgba8unorm-srgb',
                     },
                 ],
             },
@@ -225,18 +231,18 @@ export class Renderer {
     }
 
     private createPresentationContext() {
-        this.context = this.canvas.getContext('webgpu');
-        this.presentationFormat = this.context.getPreferredFormat(this.adapter);
+        // this.context = this.canvas.getContext('webgpu');
+        // this.presentationFormat = this.context.getPreferredFormat(this.adapter);
 
-        this.context.configure({
-            device: this.device,
-            format: this.presentationFormat,
-            usage: GPUTextureUsage.RENDER_ATTACHMENT,
-        });
+        // this.context.configure({
+        //     device: this.device,
+        //     format: this.presentationFormat,
+        //     usage: GPUTextureUsage.RENDER_ATTACHMENT,
+        // });
 
         // We recreate the offscreen target on resize (= context recreation)
-        this.offscreenTexture = this.device.createTexture({
-            format: this.presentationFormat,
+        this.offscreenTexture = this.device!.createTexture({
+            format: 'rgba8unorm-srgb',
             size: {
                 width: this.canvas.width,
                 height: this.canvas.height,
@@ -244,14 +250,14 @@ export class Renderer {
             usage: GPUTextureUsage.COPY_SRC | GPUTextureUsage.RENDER_ATTACHMENT,
         });
 
-        this.offscreenBuffer = this.device.createBuffer({
+        this.offscreenBuffer = this.device!.createBuffer({
             size: this.canvas.width * this.canvas.height * 4,
             usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
         });
     }
 
     private createBuffer(data: TypedArray, usage: GPUBufferUsageFlags) {
-        const buffer = this.device.createBuffer({
+        const buffer = this.device!.createBuffer({
             size: data.byteLength,
             usage,
             mappedAtCreation: true,
@@ -266,12 +272,12 @@ export class Renderer {
     }
 
     private writeBuffer(buffer: GPUBuffer, data: TypedArray) {
-        this.queue.writeBuffer(buffer, 0, data);
+        this.queue!.writeBuffer(buffer, 0, data);
     }
 
     private addBindGroup(...entries: GPUBindingResource[]) {
-        const bindGroup = this.device.createBindGroup({
-            layout: this.renderPipeline.getBindGroupLayout(this.bindGroups.length),
+        const bindGroup = this.device!.createBindGroup({
+            layout: this.renderPipeline!.getBindGroupLayout(this.bindGroups.length),
             entries: entries.map((entry, index) => ({ binding: index, resource: entry })),
         });
 
@@ -292,21 +298,19 @@ export class Renderer {
     }
 
     private createColorScheme() {
-        this.colorSchemeTexture = this.device.createTexture({
-            format: 'rgba8unorm',
-            size: {
-                width: this.colorScheme.width,
-                height: this.colorScheme.height,
-            },
-            usage:
-                GPUTextureUsage.COPY_DST |
-                GPUTextureUsage.SAMPLED |
-                GPUTextureUsage.RENDER_ATTACHMENT,
-        });
-
-        const sampler = this.device.createSampler();
-
-        this.addBindGroup(sampler, this.colorSchemeTexture.createView());
+        // this.colorSchemeTexture = this.device.createTexture({
+        //     format: 'rgba8unorm',
+        //     size: {
+        //         width: this.colorScheme.width,
+        //         height: this.colorScheme.height,
+        //     },
+        //     usage:
+        //         GPUTextureUsage.COPY_DST |
+        //         GPUTextureUsage.SAMPLED |
+        //         GPUTextureUsage.RENDER_ATTACHMENT,
+        // });
+        // const sampler = this.device.createSampler();
+        // this.addBindGroup(sampler, this.colorSchemeTexture.createView());
     }
 
     private setRenderParams() {
@@ -324,18 +328,16 @@ export class Renderer {
         }
     }
 
-    private render(offscreen = false): void {
-        this.queue.copyExternalImageToTexture(
-            { source: this.colorScheme },
-            { texture: this.colorSchemeTexture },
-            { width: this.colorScheme.width, height: this.colorScheme.height }
-        );
+    public render(offscreen = true): void {
+        // this.queue.copyExternalImageToTexture(
+        //     { source: this.colorScheme },
+        //     { texture: this.colorSchemeTexture },
+        //     { width: this.colorScheme.width, height: this.colorScheme.height }
+        // );
 
-        const frameView = offscreen
-            ? this.offscreenTexture.createView()
-            : this.context.getCurrentTexture().createView();
+        const frameView = this.offscreenTexture!.createView();
 
-        const encoder = this.device.createCommandEncoder();
+        const encoder = this.device!.createCommandEncoder();
         const renderPass = encoder.beginRenderPass({
             colorAttachments: [
                 {
@@ -351,38 +353,38 @@ export class Renderer {
             ],
         });
 
-        renderPass.setPipeline(this.renderPipeline);
+        renderPass.setPipeline(this.renderPipeline!);
 
         this.bindGroups.forEach((bindGroup, index) => {
             renderPass.setBindGroup(index, bindGroup);
         });
 
-        renderPass.setVertexBuffer(0, this.vertexBuffer);
-        renderPass.setVertexBuffer(1, this.instanceBuffer);
-        renderPass.setIndexBuffer(this.indexBuffer, 'uint32');
-        renderPass.drawIndexed(this.indexCount, this.instanceCount);
+        renderPass.setVertexBuffer(0, this.vertexBuffer!);
+        renderPass.setVertexBuffer(1, this.instanceBuffer!);
+        renderPass.setIndexBuffer(this.indexBuffer!, 'uint32');
+        renderPass.drawIndexed(this.indexCount!, this.instanceCount!);
         renderPass.endPass();
 
-        if (offscreen) {
-            encoder.copyTextureToBuffer(
-                {
-                    texture: this.offscreenTexture,
-                },
-                {
-                    buffer: this.offscreenBuffer,
-                    bytesPerRow: this.canvas.width * 4,
-                },
-                {
-                    width: this.canvas.width,
-                    height: this.canvas.height,
-                }
-            );
-        }
+        // if (offscreen) {
+        encoder.copyTextureToBuffer(
+            {
+                texture: this.offscreenTexture!,
+            },
+            {
+                buffer: this.offscreenBuffer!,
+                bytesPerRow: this.canvas.width * 4,
+            },
+            {
+                width: this.canvas.width,
+                height: this.canvas.height,
+            }
+        );
+        // }
 
-        this.queue.submit([encoder.finish()]);
+        this.queue!.submit([encoder.finish()]);
 
-        if (!offscreen) {
-            this.animationId = requestAnimationFrame(() => this.render());
-        }
+        // if (!offscreen) {
+        //     this.animationId = requestAnimationFrame(() => this.render());
+        // }
     }
 }

@@ -1,4 +1,4 @@
-import type { TypedArray, TypedArrayConstructor } from '../types/utils';
+import type { TypedArray, TypedArrayConstructor } from '../types/utils.ts';
 
 export const chooseArray = (data: TypedArray): TypedArrayConstructor => {
     if (data instanceof Float32Array) {
@@ -17,5 +17,7 @@ export const chooseArray = (data: TypedArray): TypedArrayConstructor => {
         return Uint16Array;
     } else if (data instanceof Uint32Array) {
         return Uint32Array;
+    } else {
+        return Float32Array;
     }
 };

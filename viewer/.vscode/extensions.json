@@ -4,6 +4,7 @@
         "esbenp.prettier-vscode",
         "slevesque.shader",
         "cadenas.vscode-glsllint",
-        "kavod-io.vscode-jest-test-adapter"
+        "kavod-io.vscode-jest-test-adapter",
+        "polymeilex.wgsl"
     ]
 }

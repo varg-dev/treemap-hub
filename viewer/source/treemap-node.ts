@@ -1,5 +1,5 @@
-import { calculateBufferSize, createVertexBufferLayout } from './utils/buffer-helper';
-import type { TreemapNodeData } from './types/treemap';
+import { calculateBufferSize, createVertexBufferLayout } from './utils/buffer-helper.ts';
+import type { TreemapNodeData } from './types/treemap.ts';
 
 export class TreemapNode {
     private static VERTEX_BUFFER_ATTRIBUTES: GPUVertexFormat[] = [

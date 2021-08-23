@@ -225,7 +225,7 @@ export class Renderer {
     }
 
     private createPresentationContext() {
-        this.context = this.canvas.getContext('gpupresent');
+        this.context = this.canvas.getContext('webgpu');
         this.presentationFormat = this.context.getPreferredFormat(this.adapter);
 
         this.context.configure({

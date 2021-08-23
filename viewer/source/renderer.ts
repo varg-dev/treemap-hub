@@ -192,14 +192,14 @@ export class Renderer {
     }
 
     private async setupRenderPipeline() {
-        const [vertexShader, fragmentShader] = Renderer.PRESETS[this.renderingPreset];
+        const [vertexShaderName, fragmentShaderName] = Renderer.PRESETS[this.renderingPreset];
+        const [vertexShader, fragmentShader] = await Promise.all([
+            loadShader(vertexShaderName),
+            loadShader(fragmentShaderName),
+        ]);
 
-        const vertexShaderModule = this.device.createShaderModule({
-            code: await loadShader(vertexShader),
-        });
-        const fragmentShaderModule = this.device.createShaderModule({
-            code: await loadShader(fragmentShader),
-        });
+        const vertexShaderModule = this.device.createShaderModule({ code: vertexShader });
+        const fragmentShaderModule = this.device.createShaderModule({ code: fragmentShader });
 
         this.renderPipeline = this.device.createRenderPipeline({
             primitive: {

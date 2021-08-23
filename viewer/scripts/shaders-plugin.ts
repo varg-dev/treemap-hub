@@ -5,7 +5,7 @@ export default function shaders(): Plugin {
     return {
         name: 'vite:shaders',
         async transform(code, id) {
-            if (!/\/assets\/shaders\/[a-z-]+\.(vert|frag|comp)\.glsl$/.test(id)) {
+            if (!/\/assets\/shaders\/glsl\/[a-z-]+\.(vert|frag|comp)\.glsl$/.test(id)) {
                 return null;
             }
 

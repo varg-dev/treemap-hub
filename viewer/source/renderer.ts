@@ -3,7 +3,7 @@ import type { TreemapLayout } from './types/treemap.ts';
 import { TreemapNode } from './treemap-node.ts';
 import { Vertex } from './vertex.ts';
 import { chooseArray } from './utils/array-helper.ts';
-// import { generateSchemeBitmap } from './utils/color-scheme-helper.ts';
+import { Color, generateSchemeBitmap } from './utils/color-scheme-helper.ts';
 import { loadShader } from './utils/shader-helper.ts';
 
 type CanvasOptions = {
@@ -45,8 +45,8 @@ export class Renderer {
 
     private layoutData: TreemapLayout | undefined;
     private renderingPreset: keyof typeof Renderer.PRESETS;
-    // private colorScheme: ImageBitmap;
-    // private colorSchemeTexture: GPUTexture;
+    private colorScheme: Uint8ClampedArray | undefined;
+    private colorSchemeTexture: GPUTexture | undefined;
     private bindGroups: GPUBindGroup[];
     private renderPipeline: GPURenderPipeline | undefined;
 
@@ -63,7 +63,7 @@ export class Renderer {
         this.renderingPreset = 'depth';
 
         // Create default color scheme
-        this.setColorScheme('black', 'white');
+        this.setColorScheme([0, 0, 0, 255], [255, 255, 255, 255]);
     }
 
     public async initialize(): Promise<void> {
@@ -105,9 +105,9 @@ export class Renderer {
         if (!this.renderPipeline) {
             await this.setupRenderPipeline();
 
-            // if (this.renderingPreset === 'depth') {
-            //     this.createColorScheme();
-            // }
+            if (this.renderingPreset === 'depth') {
+                this.createColorScheme();
+            }
         }
 
         this.setRenderParams();
@@ -178,8 +178,8 @@ export class Renderer {
         }
     }
 
-    public async setColorScheme(startColor: string, endColor: string): Promise<void> {
-        // this.colorScheme = await generateSchemeBitmap(startColor, endColor);
+    public async setColorScheme(startColor: Color, endColor: Color): Promise<void> {
+        this.colorScheme = await generateSchemeBitmap(startColor, endColor);
     }
 
     private async setupAPI(): Promise<void> {
@@ -298,19 +298,16 @@ export class Renderer {
     }
 
     private createColorScheme() {
-        // this.colorSchemeTexture = this.device.createTexture({
-        //     format: 'rgba8unorm',
-        //     size: {
-        //         width: this.colorScheme.width,
-        //         height: this.colorScheme.height,
-        //     },
-        //     usage:
-        //         GPUTextureUsage.COPY_DST |
-        //         GPUTextureUsage.SAMPLED |
-        //         GPUTextureUsage.RENDER_ATTACHMENT,
-        // });
-        // const sampler = this.device.createSampler();
-        // this.addBindGroup(sampler, this.colorSchemeTexture.createView());
+        this.colorSchemeTexture = this.device!.createTexture({
+            format: 'rgba8unorm-srgb',
+            size: {
+                width: 100,
+                height: 1,
+            },
+            usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.SAMPLED,
+        });
+        const sampler = this.device!.createSampler();
+        this.addBindGroup(sampler, this.colorSchemeTexture.createView());
     }
 
     private setRenderParams() {
@@ -329,11 +326,12 @@ export class Renderer {
     }
 
     public render(offscreen = true): void {
-        // this.queue.copyExternalImageToTexture(
-        //     { source: this.colorScheme },
-        //     { texture: this.colorSchemeTexture },
-        //     { width: this.colorScheme.width, height: this.colorScheme.height }
-        // );
+        this.queue!.writeTexture(
+            { texture: this.colorSchemeTexture! },
+            this.colorScheme!,
+            { bytesPerRow: 4 * 100 },
+            { width: 100, height: 1 }
+        );
 
         const frameView = this.offscreenTexture!.createView();
 

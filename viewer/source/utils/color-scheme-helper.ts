@@ -1,18 +1,21 @@
-const canvas = document.createElement('canvas');
+export type Color = [number, number, number, number];
 
-canvas.width = 100;
-canvas.height = 1;
+const GRADIENT_STEPS = 100;
 
-const context = canvas.getContext('2d');
+export const generateSchemeBitmap = async (
+    colorA: Color,
+    colorB: Color
+): Promise<Uint8ClampedArray> => {
+    const gradient = new Uint8ClampedArray(GRADIENT_STEPS * 4);
+    const diff = colorA.map((channel, idx) => colorB[idx] - channel);
 
-export const generateSchemeBitmap = (colorA: string, colorB: string): Promise<ImageBitmap> => {
-    const gradient = context.createLinearGradient(0, 0, canvas.width, 0);
+    for (let i = 0; i < GRADIENT_STEPS; i++) {
+        const color = diff.map(
+            (channel, idx) => colorA[idx] + (i / (GRADIENT_STEPS - 1)) * channel
+        );
 
-    gradient.addColorStop(0, colorA);
-    gradient.addColorStop(1, colorB);
+        gradient.set(color, i * 4);
+    }
 
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, canvas.width, 1);
-
-    return createImageBitmap(canvas);
+    return gradient;
 };

@@ -25,33 +25,27 @@ fn main(
             // Scale & move top border
             nodePosition = nodePosition * vec2<f32>(inSize.x, lineWidth);
             nodePosition = nodePosition + inOffset + vec2<f32>(0.0, inSize.y - lineWidth);
-            break;
         }
 
         case 1: {
             // Scale & move right border
             nodePosition = nodePosition * vec2<f32>(lineWidth, inSize.y);
             nodePosition = nodePosition + inOffset + vec2<f32>(inSize.x - lineWidth, 0.0);
-            break;
         }
 
         case 2: {
             // Scale & move bottom border
             nodePosition = nodePosition * vec2<f32>(inSize.x, lineWidth);
             nodePosition = nodePosition + inOffset;
-            break;
         }
 
         case 3: {
             // Scale & move left border
             nodePosition = nodePosition * vec2<f32>(lineWidth, inSize.y);
             nodePosition = nodePosition + inOffset;
-            break;
         }
 
-        default: {
-            break;
-        }
+        default: {}
     }
 
     // Map input xy-coords of range [0.0, 1.0] to range [-1.0, 1.0]

@@ -326,12 +326,14 @@ export class Renderer {
     }
 
     public render(offscreen = true): void {
-        this.queue!.writeTexture(
-            { texture: this.colorSchemeTexture! },
-            this.colorScheme!,
-            { bytesPerRow: 4 * 100 },
-            { width: 100, height: 1 }
-        );
+        if (this.colorSchemeTexture) {
+            this.queue!.writeTexture(
+                { texture: this.colorSchemeTexture! },
+                this.colorScheme!,
+                { bytesPerRow: 4 * 100 },
+                { width: 100, height: 1 }
+            );
+        }
 
         const frameView = this.offscreenTexture!.createView();
 

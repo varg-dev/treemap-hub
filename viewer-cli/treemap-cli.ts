@@ -6,6 +6,7 @@ const size = 4096;
 const renderer = new Renderer({ width: size, height: size });
 
 await renderer.initialize();
+await renderer.setColorScheme([0, 0, 0, 255], [255, 255, 255, 255]);
 
 const treemapLayout = JSON.parse(await Deno.readTextFile("../datasets/firefox-xl-layout.json"));
 

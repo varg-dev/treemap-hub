@@ -7,6 +7,12 @@ import io
 from typing import List
 from enum import Enum
 
+import shutil
+from pathlib import Path
+from tempfile import NamedTemporaryFile
+from zipfile import ZipFile
+from typing import Callable
+
 from fastapi import FastAPI, File, UploadFile
 
 class Metric(str, Enum):
@@ -169,6 +175,7 @@ async def data_comparison(metric: Metric, files1: List[UploadFile] = File(...), 
 
 @app.post("/fullreport")
 async def data_fullreport(files: List[UploadFile] = File(...)):
+
     layouts = []
     for file in files:
         content = await file.read()
@@ -200,3 +207,44 @@ async def data_fullreport(files: List[UploadFile] = File(...)):
         "relative direction change rotation invariant": rdc_ri,
         "location drift": ld
     }
+
+@app.post("/testStore")
+async def save_upload_file_tmp(upload_file: UploadFile = File(...)) -> Path:
+    try:
+        suffix = Path(upload_file.filename).suffix
+        prefix = Path(upload_file.filename).stem + "_"
+        
+        with NamedTemporaryFile(delete=False, prefix=prefix, suffix=suffix, dir="/tmp/treemap-hub") as tmp:    #ToDo: Ordner dafür automatisch anlegen lassen oder als part vom projekt oder so
+            shutil.copyfileobj(upload_file.file, tmp)
+            tmp_path = Path(tmp.name)
+            if suffix == ".zip":
+                with ZipFile(tmp_path, 'r') as zip: 
+                    zip.extractall('/tmp/treemap-hub/')
+    finally:
+        upload_file.file.close()
+    return tmp_path
+
+@app.post("/testgetStore/")
+async def get_uploaded_file(paths: List[Path]):
+    result = []
+    for path in paths:
+        df = pd.read_csv(path)
+        aar = averageAspectRatio.averageAspectRatio(df)
+        result.append({
+        "path": path,
+        "is file": path.is_file(),
+        "name": path.name,
+        "aar": aar})
+    return result
+
+@app.get("/testgetWholeStore/")
+async def get_uploaded_file_names():
+    tempfolder = Path('/tmp/treemap-hub').rglob('*.csv')
+    return [x for x in tempfolder]
+
+def handle_upload_file(upload_file: UploadFile, handler: Callable[[Path], None]) -> None:
+    tmp_path = save_upload_file_tmp(upload_file)
+    try:
+        handler(tmp_path)  # Do something with the saved temp file
+    finally:
+        tmp_path.unlink()  # Delete the temp file 

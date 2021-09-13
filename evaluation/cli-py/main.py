@@ -4,10 +4,11 @@ from metrics import averageAspectRatio
 import mockdata as md
 import pandas as pd
 import io
-from typing import List
+from typing import ItemsView, List
 from enum import Enum
 
 import shutil
+import os
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from zipfile import ZipFile
@@ -208,7 +209,7 @@ async def data_fullreport(files: List[UploadFile] = File(...)):
         "location drift": ld
     }
 
-@app.post("/testStore")
+@app.post("/uploadFile")
 async def save_upload_file_tmp(upload_file: UploadFile = File(...)) -> Path:
     try:
         suffix = Path(upload_file.filename).suffix
@@ -224,6 +225,16 @@ async def save_upload_file_tmp(upload_file: UploadFile = File(...)) -> Path:
         upload_file.file.close()
     return tmp_path
 
+@app.post("/deleteFile/")
+async def delete_upload_file_tmp(path: Path):
+    if (path.is_file()):
+        os.remove(path)
+        return "sucessfully removed file"
+    if (path.is_dir()):
+        shutil.rmtree(path)
+        return "sucessfully removed directory"
+    return {}
+
 @app.post("/testgetStore/")
 async def get_uploaded_file(paths: List[Path]):
     result = []
@@ -237,9 +248,23 @@ async def get_uploaded_file(paths: List[Path]):
         "aar": aar})
     return result
 
-@app.get("/testgetWholeStore/")
+@app.post("/testStoreDirectory/")
+async def get_uploaded_dir(path: Path):
+    result = []
+    tempfolder = Path(path).rglob('*.csv')
+    for file in tempfolder:         #ToDo: sort files
+        df = pd.read_csv(file)
+        aar = averageAspectRatio.averageAspectRatio(df)
+        result.append({
+        "path": file,
+        "is file": file.is_file(),
+        "name": file.name,
+        "aar": aar})
+    return result
+
+@app.get("/testgetWholeStore/") 
 async def get_uploaded_file_names():
-    tempfolder = Path('/tmp/treemap-hub').rglob('*.csv')
+    tempfolder = Path('/tmp/treemap-hub').glob('*')
     return [x for x in tempfolder]
 
 def handle_upload_file(upload_file: UploadFile, handler: Callable[[Path], None]) -> None:

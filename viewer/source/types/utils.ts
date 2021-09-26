@@ -20,6 +20,8 @@ export type TypedArrayConstructor =
 
 type Preset = [string, string]; // tuple semantic: [vertex shader, fragment shader]
 
+export type RgbColor = [number, number, number];
+
 /**
  * This is a constrained identity function (CIF) for the rendering presets.
  */

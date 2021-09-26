@@ -1,9 +1,9 @@
-import { TypedArray, createPresets } from './types/utils';
+import { RgbColor, TypedArray, createPresets } from './types/utils';
+import { convertColorStringToRgb, generateSchemeBitmap } from './utils/color-scheme-helper';
 import type { TreemapLayout } from './types/treemap';
 import { TreemapNode } from './treemap-node';
 import { Vertex } from './vertex';
 import { chooseArray } from './utils/array-helper';
-import { generateSchemeBitmap } from './utils/color-scheme-helper';
 import { loadShader } from './utils/shader-helper';
 
 /**
@@ -42,6 +42,7 @@ export class Renderer {
     private renderingPreset: keyof typeof Renderer.PRESETS;
     private colorScheme: ImageBitmap;
     private colorSchemeTexture: GPUTexture;
+    private backgroundColor: RgbColor;
     private bindGroups: GPUBindGroup[];
     private renderPipeline: GPURenderPipeline;
 
@@ -59,6 +60,7 @@ export class Renderer {
 
         // Create default color scheme
         this.setColorScheme('black', 'white');
+        this.setBackgroundColor('#ffffff');
     }
 
     public async initialize(): Promise<void> {
@@ -100,9 +102,7 @@ export class Renderer {
         if (!this.renderPipeline) {
             await this.setupRenderPipeline();
 
-            if (this.renderingPreset === 'depth') {
-                this.createColorScheme();
-            }
+            this.createColorScheme();
         }
 
         this.setRenderParams();
@@ -174,6 +174,16 @@ export class Renderer {
 
     public async setColorScheme(startColor: string, endColor: string): Promise<void> {
         this.colorScheme = await generateSchemeBitmap(startColor, endColor);
+    }
+
+    public setBackgroundColor(color: string): void {
+        this.backgroundColor = convertColorStringToRgb(color);
+    }
+
+    public setOutlineColor(color: string): Promise<void> {
+        // We use the color scheme to determine the outline color - the texture is just a single color
+        // so in shaders we take an arbitrary texel value (for simplicity the first texel).
+        return this.setColorScheme(color, color);
     }
 
     private async setupAPI(): Promise<void> {
@@ -325,13 +335,11 @@ export class Renderer {
     }
 
     private render(offscreen = false): void {
-        if (this.colorSchemeTexture) {
-            this.queue.copyExternalImageToTexture(
-                { source: this.colorScheme },
-                { texture: this.colorSchemeTexture },
-                { width: this.colorScheme.width, height: this.colorScheme.height }
-            );
-        }
+        this.queue.copyExternalImageToTexture(
+            { source: this.colorScheme },
+            { texture: this.colorSchemeTexture },
+            { width: this.colorScheme.width, height: this.colorScheme.height }
+        );
 
         const frameView = offscreen
             ? this.offscreenTexture.createView()
@@ -343,9 +351,9 @@ export class Renderer {
                 {
                     view: frameView,
                     loadValue: {
-                        r: 1.0,
-                        g: 1.0,
-                        b: 1.0,
+                        r: this.backgroundColor[0],
+                        g: this.backgroundColor[1],
+                        b: this.backgroundColor[2],
                         a: 1.0,
                     },
                     storeOp: 'store',

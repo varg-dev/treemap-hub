@@ -14,3 +14,13 @@ body {
     height: 800px;
     width: 800px;
 }
+
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.hidden {
+    display: none;
+}

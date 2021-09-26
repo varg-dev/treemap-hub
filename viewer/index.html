@@ -13,7 +13,7 @@
             <button id="save-image-btn">Save image</button>
         </div>
         <canvas id="canvas" width="4096" height="4096"></canvas>
-        <div>
+        <div class="options">
             <div>
                 <label for="preset-select">Preset: </label>
                 <select id="preset-select">
@@ -22,10 +22,16 @@
                 </select>
             </div>
             <div>
-                <label for="start-color">Start color: </label>
-                <input type="color" id="start-color" />
-                <label for="end-color">End color: </label>
-                <input type="color" id="end-color" />
+                <!-- Depth parameters -->
+                <label class="param depth" for="root-color">Root color: </label>
+                <input class="param depth" type="color" id="root-color" />
+                <label class="param depth" for="leaf-color">Leaf color: </label>
+                <input class="param depth" type="color" id="leaf-color" />
+                <!-- Outlines parameters -->
+                <label class="param outlines" for="bg-color">Background color: </label>
+                <input class="param outlines" type="color" id="bg-color" />
+                <label class="param outlines" for="outline-color">Outlines color: </label>
+                <input class="param outlines" type="color" id="outline-color" />
             </div>
         </div>
     </body>

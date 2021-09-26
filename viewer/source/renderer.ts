@@ -21,7 +21,7 @@ export class Renderer {
     private adapter: GPUAdapter;
     private device: GPUDevice;
     private queue: GPUQueue;
-    private context: GPUPresentationContext;
+    private context: GPUCanvasContext;
     private presentationFormat: GPUTextureFormat;
     private offscreenTexture: GPUTexture;
     private offscreenBuffer: GPUBuffer;
@@ -300,7 +300,7 @@ export class Renderer {
             },
             usage:
                 GPUTextureUsage.COPY_DST |
-                GPUTextureUsage.SAMPLED |
+                GPUTextureUsage.TEXTURE_BINDING |
                 GPUTextureUsage.RENDER_ATTACHMENT,
         });
 
@@ -325,11 +325,13 @@ export class Renderer {
     }
 
     private render(offscreen = false): void {
-        this.queue.copyExternalImageToTexture(
-            { source: this.colorScheme },
-            { texture: this.colorSchemeTexture },
-            { width: this.colorScheme.width, height: this.colorScheme.height }
-        );
+        if (this.colorSchemeTexture) {
+            this.queue.copyExternalImageToTexture(
+                { source: this.colorScheme },
+                { texture: this.colorSchemeTexture },
+                { width: this.colorScheme.width, height: this.colorScheme.height }
+            );
+        }
 
         const frameView = offscreen
             ? this.offscreenTexture.createView()

@@ -32,7 +32,7 @@ const VERTEX_FORMAT_SIZES: Record<GPUVertexFormat, number> = {
 };
 
 export const createVertexBufferLayout = (
-    stepMode: GPUInputStepMode,
+    stepMode: GPUVertexStepMode,
     locationOffset: number,
     formats: GPUVertexFormat[]
 ): GPUVertexBufferLayout => {

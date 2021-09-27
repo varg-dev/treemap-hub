@@ -304,7 +304,7 @@ export class Renderer {
                 width: 100,
                 height: 1,
             },
-            usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.SAMPLED,
+            usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING,
         });
         const sampler = this.device!.createSampler();
         this.addBindGroup(sampler, this.colorSchemeTexture.createView());

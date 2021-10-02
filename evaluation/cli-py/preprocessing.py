@@ -1,7 +1,7 @@
 import pandas as pd
 import io
 from typing import List
-from fastapi import FastAPI, File, UploadFile
+from fastapi import File, UploadFile
 from pathlib import Path
 
 def layoutsFromFilepaths(paths: List[Path]):

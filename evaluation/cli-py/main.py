@@ -1,11 +1,6 @@
-from metrics import relativeDirectionChange
-from metrics import locationDrift
-from metrics import averageAspectRatio
 import mockdata as md
 import metricCalculation as mc
 import preprocessing as prep
-import pandas as pd
-import io
 from typing import List
 from enum import Enum
 import asyncio
@@ -75,7 +70,7 @@ async def save_upload_file_in_store(upload_file: UploadFile = File(...)) -> Path
             tmp_path = Path(tmp.name)
             if suffix == ".zip":
                 with ZipFile(tmp_path, 'r') as zip: 
-                    zip.extractall('/tmp/treemap-hub/')
+                    zip.extractall(datasetDir)
     finally:
         upload_file.file.close()
     return tmp_path
@@ -92,5 +87,5 @@ async def delete_file_from_store(path: Path):
 
 @app.get("/store/list") 
 async def get_list_of_store():
-    tempfolder = Path('/tmp/treemap-hub').glob('*')
+    tempfolder = Path(datasetDir).glob('*')
     return [x for x in tempfolder]

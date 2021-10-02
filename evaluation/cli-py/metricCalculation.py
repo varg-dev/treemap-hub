@@ -2,11 +2,7 @@ from metrics import relativeDirectionChange
 from metrics import locationDrift
 from metrics import averageAspectRatio
 
-import pandas as pd
-import io
-from typing import List
 from enum import Enum
-from fastapi import File, UploadFile
 
 class Metric(str, Enum):
     aar = "average-aspect-ratio"
@@ -14,35 +10,33 @@ class Metric(str, Enum):
     rdc_ri = "relative-direction-change-rotation-invariant"
     ld = "location-drift"
 
-def data_metrics(metric: Metric, layouts):
+class FunctionProxy:
+    def __init__(self, function):
+        self.function = function
 
+    def __call__(self, *args, **kwargs):
+        return self.function(*args, **kwargs)
+
+class Metric_Function(Enum):
+    aar = FunctionProxy(averageAspectRatio.averageAspectRatio)
+    rdc = FunctionProxy(relativeDirectionChange.rdc)
+    rdc_ri = FunctionProxy(relativeDirectionChange.rdc_ri)
+    ld = FunctionProxy(locationDrift.meanLocationDrift)
+
+def data_metrics(metric: Metric, layouts):
     if metric == Metric.aar:
         result = []
         for i in layouts:
-            aar = averageAspectRatio.averageAspectRatio(layouts[i])
+            aar = Metric_Function[metric.name].value(layouts[i])
             result.append({
                 "Dataset": i,
-                "average aspect ratio": aar
+                metric.value: aar
             })
         return {str(result)}
-
-    if metric == Metric.rdc:
-        rdc = relativeDirectionChange.rdc(list(layouts.values()))
-        return {
-            "Dataset": [x for x in layouts],
-            "relative direction change": rdc}
-
-    if metric == Metric.rdc_ri:
-        rdc_ri = relativeDirectionChange.rdc_ri(list(layouts.values()))
-        return {
-            "Dataset": [x for x in layouts],
-            "relative direction change rotation invariant": rdc_ri}
-
-    if metric == Metric.ld:
-        ld = locationDrift.meanLocationDrift(list(layouts.values()))
-        return {
-            "Dataset": [x for x in layouts],
-            "location drift": ld}
+    
+    return {
+        "Dataset": [x for x in layouts],
+        metric.value: Metric_Function[metric.name].value(list(layouts.values()))}
 
 
 def data_comparison(metric: Metric, layouts1, layouts2):
@@ -77,40 +71,16 @@ def data_comparison(metric: Metric, layouts1, layouts2):
                 "second set of layouts": aar2
                 }
 
-    if metric == Metric.rdc:
-        rdc1 = relativeDirectionChange.rdc(list(layouts1.values()))
-        rdc2 = relativeDirectionChange.rdc(list(layouts2.values()))
-        betterLayout = "first" if (rdc1 < rdc2) else "second"
-        return {"result": "The layouts from the " + betterLayout + " set of layouts have the lesser Relative Direction Change",
-                "first dataset": [x for x in layouts1],
-                "relative direction change first dataset": rdc1,
-                "second dataset": [x for x in layouts2],
-                "relative direction change second dataset": rdc2
-                }
-
-    if metric == Metric.rdc_ri:
-        rdc_ri1 = relativeDirectionChange.rdc_ri(list(layouts1.values()))
-        rdc_ri2 = relativeDirectionChange.rdc_ri(list(layouts2.values()))
-        betterLayout = "first" if (rdc_ri1 < rdc_ri2) else "second"
-        return {"result": "The layouts from the " + betterLayout + " set of layouts have the lesser rotation-invariant Relative Direction Change",
-                "first dataset": [x for x in layouts1],
-                "relative direction change rotation-invariant first dataset": rdc_ri1,
-                "second dataset": [x for x in layouts2],
-                "relative direction change rotation-invariant second dataset": rdc_ri2
-                }
-
-    if metric == Metric.ld:
-        ld1 = locationDrift.meanLocationDrift(list(layouts1.values()))
-        ld2 = locationDrift.meanLocationDrift(list(layouts2.values()))
-
-        betterLayout = "first" if (ld1 < ld2) else "second"
-        return {"result": "The layouts from the " + betterLayout + " set of layouts have the lesser Location Drift",
-                "first dataset": [x for x in layouts1],
-                "location drift first dataset": ld1,
-                "second dataset": [x for x in layouts2],
-                "location drift second dataset": ld2
-                }
-
+    layoutMetric1 = Metric_Function[metric.name].value(list(layouts1.values()))
+    layoutMetric2 = Metric_Function[metric.name].value(list(layouts2.values()))
+    betterLayout = "first" if (layoutMetric1 < layoutMetric2) else "second"
+    return {"result": "The layouts from the " + betterLayout + " set of layouts have the lesser "+ metric.value,
+            "first dataset": [x for x in layouts1],
+            metric.value+" first dataset": layoutMetric1,
+            "second dataset": [x for x in layouts2],
+            metric.value+" second dataset": layoutMetric2
+            }
+    
             
 def data_fullreport(layouts):
 

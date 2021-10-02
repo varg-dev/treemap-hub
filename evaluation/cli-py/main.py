@@ -2,8 +2,9 @@ import mockdata as md
 import metricCalculation as mc
 import preprocessing as prep
 from typing import List
-from enum import Enum
 import asyncio
+
+from metricCalculation import Metric
 
 import shutil
 import os
@@ -15,51 +16,46 @@ from fastapi import FastAPI, File, UploadFile
 
 datasetDir = os.environ.get('DATASET_DIRECTORY', '/tmp/treemap-hub')
 
-class Metric(str, Enum):
-    aar = "average-aspect-ratio"
-    rdc = "relative-direction-change"
-    rdc_ri = "relative-direction-change-rotation-invariant"
-    ld = "location-drift"
 
 app = FastAPI()
 
-@app.get("/{metric}")
+@app.get("/mockdata/{metric}")
 async def mockdata_metrics(metric: Metric):
     mockdata = md.generateMockdata()
     return mc.data_metrics(metric, mockdata)
 
-@app.post("/uploadfiles/metric/{metric}")
-async def data_metrics(metric: Metric, files: List[UploadFile] = File(...)):
+@app.post("/metric/uploadfiles/{metric}")
+async def metric_for_layout_by_files(metric: Metric, files: List[UploadFile] = File(...)):
     layouts = await prep.layoutsFromFiles(files)
     return mc.data_metrics(metric, layouts)
 
-@app.post("/pathlist/metric/{metric}")
-async def data_metrics(metric: Metric, paths: List[Path]):
+@app.post("/metric/pathlist/{metric}")
+async def metric_for_layout_by_paths(metric: Metric, paths: List[Path]):
     layouts = prep.layoutsFromFilepaths(paths)
     return mc.data_metrics(metric, layouts)
 
-@app.post("/uploadfile/comparison/{metric}")
-async def data_comparison(metric: Metric, files1: List[UploadFile] = File(...), files2: List[UploadFile] = File(...)):
+@app.post("/comparison/uploadfile/{metric}")
+async def comparison_of_layouts_by_files(metric: Metric, files1: List[UploadFile] = File(...), files2: List[UploadFile] = File(...)):
     layouts1, layouts2 = await asyncio.gather(prep.layoutsFromFiles(files1), prep.layoutsFromFiles(files2))
     return mc.data_comparison(metric, layouts1, layouts2)
 
-@app.post("/pathlist/comparison/{metric}")
-async def data_comparison(metric: Metric, paths1: List[Path], paths2: List[Path]):
+@app.post("/comparison/pathlist/{metric}")
+async def comparison_of_layouts_by_paths(metric: Metric, paths1: List[Path], paths2: List[Path]):
     layouts1 = prep.layoutsFromFilepaths(paths1)
     layouts2 = prep.layoutsFromFilepaths(paths2)
     return mc.data_comparison(metric, layouts1, layouts2)
 
-@app.post("/uploadfile/fullreport")
-async def data_fullreport(files: List[UploadFile] = File(...)):
+@app.post("/fullreport/uploadfile")
+async def full_report_of_layouts_by_files(files: List[UploadFile] = File(...)):
     layouts = await prep.layoutsFromFiles(files)
     return mc.data_fullreport(layouts)
 
-@app.post("/pathlist/fullreport")
-async def data_fullreport(paths: List[Path]):
+@app.post("/fullreport/pathlist")
+async def full_report_of_layouts_by_paths(paths: List[Path]):
     layouts = prep.layoutsFromFilepaths(paths)
     return mc.data_fullreport(layouts)
 
-@app.post("/store/upload")
+@app.put("/store")
 async def save_upload_file_in_store(upload_file: UploadFile = File(...)) -> Path:
     try:
         suffix = Path(upload_file.filename).suffix
@@ -75,7 +71,7 @@ async def save_upload_file_in_store(upload_file: UploadFile = File(...)) -> Path
         upload_file.file.close()
     return tmp_path
 
-@app.post("/store/delete/")
+@app.delete("/store")
 async def delete_file_from_store(path: Path):
     if (path.is_file()):
         os.remove(path)
@@ -85,7 +81,7 @@ async def delete_file_from_store(path: Path):
         return "sucessfully removed directory"
     return {}
 
-@app.get("/store/list") 
+@app.get("/store") 
 async def get_list_of_store():
     tempfolder = Path(datasetDir).glob('*')
     return [x for x in tempfolder]

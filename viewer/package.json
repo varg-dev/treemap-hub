@@ -2,7 +2,7 @@
     "name": "treemap-2d",
     "repository": "https://github.com/varg-dev/treemap-hub/viewer",
     "description": "Treemap 2D Rendering Library",
-    "version": "0.0.0",
+    "version": "0.1.0",
     "license": "MIT",
     "author": "Visual Analytics Research Group",
     "contributors": [
